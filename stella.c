@@ -129,59 +129,24 @@ Uint32 pixels[STELLA_VERTICAL_CLOCK_COUNTS*STELLA_HORIZONTAL_LINES] = {0};
 
 int
 StellaPrintFrame(STELLA *stella, Uint32 framebuffer
-		 [STELLA_VERTICAL_CLOCK_COUNTS]
-		 [STELLA_HORIZONTAL_LINES])
+		 [STELLA_HORIZONTAL_LINES]
+		 [STELLA_VERTICAL_CLOCK_COUNTS])
 {
-  //  SDL_Event evt;
-  /* Uint32 (*p)[STELLA_HORIZONTAL_LINES]; */
-  int itr = 0;
-  /* Uint32 white = StellaCreatePixel(0xff, 0xff, 0xff, 0xff) ; */
-  /* Uint32 black = StellaCreatePixel(0x00, 0x00, 0x00, 0x00) ; */
-  //  Uint32 red = StellaCreatePixel(0xff, 0xff, 0x00, 0x00) ;
-  int clkcount = 0;
-  int line = 0;
-  //  sdlRenderer = SDL_CreateRenderer(window, -1, 0);
+  //int itr = 0;
+  //int clkcount = 0;
+  // int line = 0;
 
-  SDL_SetRenderDrawColor(stella->renderer, 255, 0, 255, 255);
-  SDL_RenderClear(stella->renderer);
-  //  SDL_RenderPresent(sdlRenderer);
-  
-  /* // not working? must create renderer here? */
-  /* SDL_Texture *sdlTexture = SDL_CreateTexture(sdlRenderer, */
-  /* 					      SDL_PIXELFORMAT_ARGB8888, */
-  /* 					      SDL_TEXTUREACCESS_STREAMING, */
-  /* 					      STELLA_VERTICAL_CLOCK_COUNTS, */
-  /* 					      STELLA_HORIZONTAL_LINES); */
+  /* SDL_SetRenderDrawColor(stella->renderer, 255, 0, 255, 255); */
+  /* SDL_RenderClear(stella->renderer); */
 
   
   int ret = 0;
-  itr = 0;
-  SDL_Delay(100);
+  //  SDL_Delay(100);
   SDL_Event event = {0}; 
   while( SDL_PollEvent(&event)){
     StellaProcessEvent(event);
   }
-  
-  /* if(itr == 0) */
-  /*   memset(pixels, '\0',  STELLA_VERTICAL_CLOCK_COUNTS*STELLA_HORIZONTAL_LINES); */
-  /* pixels[itr] = red; //isWhite?white:black; */
-  /* itr = (itr + 1)  % (STELLA_VERTICAL_CLOCK_COUNTS*STELLA_HORIZONTAL_LINES); */
-  for (line = 0; line < STELLA_HORIZONTAL_LINES; line++)
-    {
-	
-      for (clkcount=0 ;clkcount < STELLA_VERTICAL_CLOCK_COUNTS; clkcount++)
-	{
-	  pixels[itr] = framebuffer[clkcount][line];
-	  /* if (framebuffer[clkcount][line]) */
-	  /*   pixels[itr] = black; //isWhite?white:black; */
-	  /* else */
-	  /*   pixels[itr] = white; //isWhite?white:black; */
-
-	  itr = (itr + 1)  % (STELLA_VERTICAL_CLOCK_COUNTS*STELLA_HORIZONTAL_LINES);
-    
-	}
-    }
-  ret = SDL_UpdateTexture(stella->texture, NULL, pixels, STELLA_VERTICAL_CLOCK_COUNTS  * sizeof (Uint32));
+  ret = SDL_UpdateTexture(stella->texture, NULL, framebuffer, STELLA_VERTICAL_CLOCK_COUNTS  * sizeof (Uint32));
   if (ret)
     printf("[%s:%d]Error: %s\n",__FUNCTION__, __LINE__, SDL_GetError());
   ret = SDL_RenderClear(stella->renderer);
@@ -196,7 +161,7 @@ StellaPrintFrame(STELLA *stella, Uint32 framebuffer
   // this works just like SDL_Flip() in SDL 1.2
 
   //  SDL_DestroyTexture(sdlTexture);
-  return itr;
+  return ret;
 }
 
 
@@ -204,9 +169,6 @@ STELLA*
 StellaCreate()
 {
   STELLA* tia = NULL;
-  //  pthread_t thread;
-  //  int rc;
-  //  long t;
 
   SDL_Window* window;
   SDL_Renderer *sdlRenderer;
@@ -231,11 +193,6 @@ StellaCreate()
 			    /* STELLA_HORIZONTAL_LINES*4,           // height, in pixels */
 			    SDL_WINDOW_OPENGL                  // flags - see below
 			    );
-  /* SDL_Window* window = init("Stella Window", */
-  /* 			    STELLA_HORIZONTAL_LINES*2, */
-  /* 			    STELLA_VERTICAL_CLOCK_COUNTS*2); */
-  /* SDL_Surface *screen = NULL; */
-  /* screen = SDL_GetWindowSurface(window); */
   sdlRenderer = SDL_CreateRenderer(window, -1, 0);
 
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
@@ -244,7 +201,7 @@ StellaCreate()
 
 
 
-  SDL_Delay(1000);
+  SDL_Delay(10);
 
   sdlTexture = SDL_CreateTexture(sdlRenderer,
 					      SDL_PIXELFORMAT_ARGB8888,
@@ -256,11 +213,6 @@ StellaCreate()
   tia->texture = sdlTexture;
   tia->renderer = sdlRenderer;
   
-  /* rc = pthread_create(&thread, NULL, StellaLoopThd, (void *)t); */
-  /* if (rc){ */
-  /*   printf("ERROR; return code from pthread_create() is %d\n", rc); */
-  /*   exit(-1); */
-  /* } */
   
   return tia;
 }

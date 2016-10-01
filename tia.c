@@ -1,22 +1,9 @@
 #include "includes.h"
 
-#define CLOCK_COUNTS 228
-#define SCAN_LINES 262
-#define FRAME_CLOCK_COUNTS 160
-#define FRAME_LINES 192
-#define HORIZONTAL_BLANK 68
-#define VERTICAL_SYNC 3
-#define VERTICAL_BLANK 37
-#define VERTICAL_TIMING (VERTICAL_SYNC + VERTICAL_BLANK)
-#define OVERSCAN 30
-#define RIGHT_FRAME (HORIZONTAL_BLANK + (FRAME_CLOCK_COUNTS / 2))
+//Uint32 framebuffer[FRAME_CLOCK_COUNTS][FRAME_LINES];
 
-Uint32 framebuffer[FRAME_CLOCK_COUNTS][FRAME_LINES];
+Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
-
-/* unsigned char PF0 = 0; */
-/* unsigned char PF1 = 0; */
-/* unsigned char PF2 = 0; */
 
 #define  PF0 (memmap->tia_write[TIA_WRITE_PF0])
 #define  PF1 (memmap->tia_write[TIA_WRITE_PF1])
@@ -296,183 +283,15 @@ TiaPlayField(int row, int column){
     break;
   }
   
-  framebuffer[col_adj][row_adj] = hasPf?pf_pixel:bk_pixel;
+  framebuffer[row_adj][col_adj] = hasPf?pf_pixel:bk_pixel;
 
-  //  assert( framebuffer[75][ 192/2] == 0);
+  //  assert( framebuffer[ 192/2][75] == 0);
   
   return 0;
 }
 
-int
-TiaPlayField2(int row, int column){
-  int bit = 0;
-  unsigned char mask = 0;
-  ColorPalette bk_color = {0,0,0};
-  ColorPalette pf_color = {0,0,0};
-  Uint32 bk_pixel = 0;
-  Uint32 pf_pixel = 0;
-  
-  // Are we in the printable area and which PF register to use?
-  if ( row < VERTICAL_TIMING || row >= VERTICAL_TIMING + FRAME_LINES || column < HORIZONTAL_BLANK)
-    return 0;
-  
-  TiaParsePlayField();
-
-  bk_color = palette[playField->bk_lum][playField->bk_color];
-  bk_pixel = StellaCreatePixel(0x00, bk_color.red, bk_color.green, bk_color.blue);
-  pf_color = palette[playField->pf_lum][playField->pf_color];
-  pf_pixel = StellaCreatePixel(0x00, pf_color.red, pf_color.green, pf_color.blue);
-
-  unsigned char pf0 = PF0;
-  unsigned char pf1 = PF1;
-  unsigned char pf2 = PF2;
-
-  if( column == CLOCK_COUNTS - 1)
-    printf("%x%x%x\n", pf0, pf1, pf2);
-    
-  if( column >= HORIZONTAL_BLANK && column < HORIZONTAL_BLANK + 16 ){
-
-    // Calculate the bit.
-    bit = HORIZONTAL_BLANK + 16 - 1 - column;
-
-    // Mask the bit, only left four bits used
-    mask = 1 << (4 + bit / 4);
-    if ( PF0 & mask ){
-      //printf("PF0 %#x, bit %d, %#x\n", PF0, bit, (PF0 & mask));
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = pf_pixel;
-
-    }
-    else{
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = bk_pixel;
-    }
-  } else if( column >= HORIZONTAL_BLANK + 16 &&
-	     column < HORIZONTAL_BLANK + 16 + 32){
-
-    // Calculate the bit.
-    bit = HORIZONTAL_BLANK + 16 + 32 - 1 - column;
-
-    // Mask the bit
-    mask = 1 << (bit / 8);
-    if ( PF1 & mask ){
-      //      printf("PF1 %#x, bit %d, %#x\n", PF1, bit, (PF1 & mask));
-
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = pf_pixel;
-    }
-    else{
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = bk_pixel;
-    }
-  } else if( column >= HORIZONTAL_BLANK + 16 + 32 &&
-	     column < HORIZONTAL_BLANK + 16 + 32 + 32 ){
-    // Calculate the bit.
-    bit = HORIZONTAL_BLANK + 16 + 32 + 32 - 1 - column;
-    
-    // Mask the bit
-    mask = 1 << (bit / 8 );
-    if ( PF2 & mask ){
-      //      printf("PF2 %#x, bit %d, %#x\n", PF2, bit, (PF2 & mask));
-
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = pf_pixel;
-    }
-    else{
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = bk_pixel;
-    }
-  } else if ( column >= HORIZONTAL_BLANK + 16 + 32 + 32 ) { 
-
-    // TODO: update second half per registers
-    if(playField->reflect){
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] =
-  	framebuffer[HORIZONTAL_BLANK +  (FRAME_CLOCK_COUNTS / 2) -
-  		     ( column - HORIZONTAL_BLANK + FRAME_CLOCK_COUNTS / 2 )][row - VERTICAL_TIMING];
-    } else {
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] =
-  	framebuffer[column - HORIZONTAL_BLANK - FRAME_CLOCK_COUNTS / 2][row - VERTICAL_TIMING];
-    }
-    
-  }
-  /*
-  else if( column >= RIGHT_FRAME && column < RIGHT_FRAME + 16 ){
-    if(!playField->reflect){
-    
-      // Calculate the bit.
-      bit = HORIZONTAL_BLANK + 16 - 1 - column;
-      
-      // Mask the bit, only left four bits used
-      mask = 1 << (4 + bit / 4);
-      if ( PF0 & mask ){
-	//printf("PF0 %#x, bit %d, %#x\n", PF0, bit, (PF0 & mask));
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = pf_pixel;
-      
-      }
-      else{
-	framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = bk_pixel;
-      }
-    } else {
-
-
-    }
-  } else if( column >= HORIZONTAL_BLANK + 16 &&
-	     column < HORIZONTAL_BLANK + 16 + 32){
-
-    // Calculate the bit.
-    bit = HORIZONTAL_BLANK + 16 + 32 - 1 - column;
-
-    // Mask the bit
-    mask = 1 << (bit / 8);
-    if ( PF1 & mask ){
-      //      printf("PF1 %#x, bit %d, %#x\n", PF1, bit, (PF1 & mask));
-
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = pf_pixel;
-    }
-    else{
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = bk_pixel;
-    }
-  } else if( column >= HORIZONTAL_BLANK + 16 + 32 &&
-	     column < HORIZONTAL_BLANK + 16 + 32 + 32 ){
-    // Calculate the bit.
-    bit = HORIZONTAL_BLANK + 16 + 32 + 32 - 1 - column;
-    
-    // Mask the bit
-    mask = 1 << (bit / 8);
-    if ( PF2 & mask ){
-      //      printf("PF2 %#x, bit %d, %#x\n", PF2, bit, (PF2 & mask));
-
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = pf_pixel;
-    }
-    else{
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] = bk_pixel;
-    }
-  } else if ( column >= HORIZONTAL_BLANK + 16 + 32 + 32 ) {
-
-    // TODO: update second half per registers
-    if(playField->reflect){
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] =
-	framebuffer[HORIZONTAL_BLANK +  (FRAME_CLOCK_COUNTS / 2) -
-		     ( column - HORIZONTAL_BLANK + FRAME_CLOCK_COUNTS / 2 )][row - VERTICAL_TIMING];
-    } else {
-      framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING] =
-	framebuffer[column - HORIZONTAL_BLANK - FRAME_CLOCK_COUNTS / 2][row - VERTICAL_TIMING];
-    }
-    
-  }
-  */
-  
-  /* if( column > HORIZONTAL_BLANK) */
-  /*   assert(framebuffer[column - HORIZONTAL_BLANK -1][row - VERTICAL_TIMING] == framebuffer[column - HORIZONTAL_BLANK][row - VERTICAL_TIMING]); */
-  return 1;
-}
-
 int TiaReadRegs()
 {
-  /* static int vsync = 0; */
-  /* static int vblank = 0; */
-
-  // strobe registers don't change value
-  /* if(memmap->tia_write[TIA_WRITE_WSYNC]) */
-  /*   { */
-  /*     Wsync = true; */
-  /*     // strobe reg */
-  /*     memmap->tia_write[TIA_WRITE_WSYNC] = 0; */
-  /*   } */
   
   if(memmap->tia_write[TIA_WRITE_VSYNC] & (1<<1))
     {
@@ -486,21 +305,6 @@ int TiaReadRegs()
 
   return 0;
 }
-
-  /* if(memmap->tia_write[TIA_WRITE_VSYNC] & (1<<1))   { */
-  /*   vsync = 1; */
-  /* } else if (vsync == 1) { */
-  /*   row = VERTICAL_SYNC; */
-  /*   vsync = 0; */
-  /* } */
-  /* if(memmap->tia_write[TIA_WRITE_VBLANK] & (1<<1)) */
-  /*   { */
-  /*     vblank = 1; */
-  /*     row = 0; */
-  /*   } else if (vblank == 1){ */
-  /*   vblank = 0; */
-  /* } */
-
 
 int
 TiaCycle()

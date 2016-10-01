@@ -165,8 +165,9 @@ void cleanup();
 void getInput(void);
 
 int
-StellaPrintFrame(STELLA *stella, Uint32 framebuffer[STELLA_VERTICAL_CLOCK_COUNTS]
-		 [STELLA_HORIZONTAL_LINES]);
+StellaPrintFrame(STELLA *stella, Uint32 framebuffer
+		 [STELLA_HORIZONTAL_LINES]
+		 [STELLA_VERTICAL_CLOCK_COUNTS]);
 Uint32 StellaCreatePixel(unsigned char alpha,
 			 unsigned char red,
 			 unsigned char green,

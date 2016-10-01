@@ -231,7 +231,20 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 #define  PF1 (memmap->tia_write[TIA_WRITE_PF1])
 #define  PF2 (memmap->tia_write[TIA_WRITE_PF2])
 
-extern Uint32 framebuffer[STELLA_VERTICAL_CLOCK_COUNTS][STELLA_HORIZONTAL_LINES];
+#define CLOCK_COUNTS 228
+#define SCAN_LINES 262
+#define FRAME_CLOCK_COUNTS 160
+#define FRAME_LINES 192
+#define HORIZONTAL_BLANK 68
+#define VERTICAL_SYNC 3
+#define VERTICAL_BLANK 37
+#define VERTICAL_TIMING (VERTICAL_SYNC + VERTICAL_BLANK)
+#define OVERSCAN 30
+#define RIGHT_FRAME (HORIZONTAL_BLANK + (FRAME_CLOCK_COUNTS / 2))
+
+
+//extern Uint32 framebuffer[STELLA_VERTICAL_CLOCK_COUNTS][STELLA_HORIZONTAL_LINES];
+extern Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
 typedef struct _Tia {
   bool wsync;
