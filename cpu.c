@@ -31,7 +31,8 @@ void StackPushShort(ushort bytes){
 
   
 /* } */
-#define OPPRINTF(...) printf(__VA_ARGS__)
+// #define OPPRINTF(...) printf(__VA_ARGS__)
+#define OPPRINTF(...) 
 
 int
 CpuCycle(){
@@ -49,12 +50,12 @@ CpuCycle(){
 
 
     if(--processor->cycles > 0){
-      printf("cpu taking cycles: %d\n", processor->cycles);
+      //printf("cpu taking cycles: %d\n", processor->cycles);
       return processor->cycles;
     }
       
     if(Wsync) {
-      printf("CPU PAUSED\n");
+      //printf("CPU PAUSED\n");
       return 0;
     }
     
@@ -102,7 +103,7 @@ CpuCycle(){
       
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
-
+      tmp &= 0xFF;
       arg1 = processor->regs.accumulator;
       arg2 = MemoryGetByteAt(tmp);
       result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
@@ -234,7 +235,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_AND_ZERO_X:\n");
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
-
+      tmp &= 0xFF;
       arg1 = processor->regs.accumulator;
       arg2 = MemoryGetByteAt(tmp);
       result = arg1 & arg2;
@@ -345,6 +346,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_ASL_ZERO_X:\n");
       addr = MemoryGetByteAt(processor->regs.pc+1);
       addr += processor->regs.x;
+      addr &= 0xFF;
       arg1 = MemoryGetByteAt(addr);
       result = arg1 << 1;
       MemorySetByteAt(addr, (char)result);
@@ -453,11 +455,16 @@ CpuCycle(){
       OPPRINTF("OPCODE_BPL:\n");
 
       cycles = 2;
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
       
       if(!FLAG_NEG(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+      	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
       }
       processor->regs.pc += 2;					    
       break;
@@ -469,49 +476,73 @@ CpuCycle(){
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+      	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
       }
       processor->regs.pc += 2;					    
       break;
     case OPCODE_BVC:
       OPPRINTF("OPCODE_BVC:\n");
       cycles = 2;
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
 
       if(!FLAG_OVER(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+      	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
       }
       processor->regs.pc += 2;					    
       break;
     case OPCODE_BVS:
       OPPRINTF("OPCODE_BVS:\n");
       cycles = 2;
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
 
       if(FLAG_OVER(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+      	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
       }
       processor->regs.pc += 2;					    
       break;
     case OPCODE_BCC:
       OPPRINTF("OPCODE_BCC:\n");
       cycles = 2;
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
 
       if(!FLAG_CARRY(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
+
       }
       processor->regs.pc += 2;					    
       break;
     case OPCODE_BCS:
       OPPRINTF("OPCODE_BCS:\n");
       cycles = 2;
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
 
       if(FLAG_CARRY(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
+	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
 	cycles++;
       }
       processor->regs.pc += 2;					    
@@ -519,22 +550,32 @@ CpuCycle(){
     case OPCODE_BNE:
       OPPRINTF("OPCODE_BNE:\n");
       cycles = 2;
-
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
       if(!FLAG_ZERO(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
       }
       processor->regs.pc += 2;					    
       break;
     case OPCODE_BEQ:
       OPPRINTF("OPCODE_BEQ:\n");
       cycles = 2;
+      // Note address if branch not taken
+      tmp = processor->regs.pc + 2;
 
       if(FLAG_ZERO(processor->regs.flags)) {
 	processor->regs.pc +=
 	  (signed char)(MemoryGetByteAt(processor->regs.pc + 1));
 	cycles++;
+	// Does branch cross page boundary?
+	if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+	  cycles++;
+
       }
 	 
       processor->regs.pc += 2;					    
@@ -580,6 +621,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_CMP_ZERO_X:\n");
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
+      tmp &= 0xFF;
       arg2 = MemoryGetByteAt(tmp);
       arg1 = processor->regs.accumulator;
       result = arg1 - arg2;
@@ -846,7 +888,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_EOR_ZERO_X:\n");
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
-
+      tmp &= 0xFF;
       arg1 = processor->regs.accumulator;
       arg2 = MemoryGetByteAt(tmp);
       result = arg1 ^ arg2;
@@ -1091,6 +1133,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_LDA_ZERO_X:\n");
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
+      tmp &= 0xFF;
       processor->regs.accumulator = MemoryGetByteAt(tmp);
       SETSIGN(processor->regs.accumulator);
       SETZERO(processor->regs.accumulator);
@@ -1110,14 +1153,16 @@ CpuCycle(){
       break;
     case OPCODE_LDA_ABS_X:
       OPPRINTF("OPCODE_LDA_ABS_X:\n");
-      tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
-      tmp += processor->regs.x;
-      processor->regs.accumulator = MemoryGetByteAt(tmp );
+      addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+      addr += processor->regs.x;
+      
+      processor->regs.accumulator = MemoryGetByteAt( addr );
       SETSIGN(processor->regs.accumulator);
       SETZERO(processor->regs.accumulator);
       processor->regs.pc = processor->regs.pc+3;
       cycles = 4;
-
+      if (((addr + processor->regs.x) & 0xFF) > 0x100)
+	cycles++;
       break;
     case OPCODE_LDA_ABS_Y:
       OPPRINTF("OPCODE_LDA_ABS_Y:\n");
@@ -1231,6 +1276,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_LDY_ZERO_X:\n");
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
+      tmp &= 0xFF;
       processor->regs.y = MemoryGetByteAt(tmp);
       SETSIGN(processor->regs.accumulator);
       SETZERO(processor->regs.accumulator);
@@ -1297,7 +1343,7 @@ CpuCycle(){
       // calculate addr
       addr = MemoryGetByteAt(processor->regs.pc+1);
       addr += processor->regs.x;
-
+      addr &= 0xFF;
       // get byte
       arg1 = MemoryGetByteAt(addr);
 
@@ -1415,7 +1461,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_ORA_ZERO_X:\n");
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
-
+      tmp &= 0xFF;
       arg1 = processor->regs.accumulator;
       arg2 = MemoryGetByteAt(tmp);
       result = arg1 | arg2;
@@ -1654,7 +1700,7 @@ CpuCycle(){
       // calculate addr
       addr = MemoryGetByteAt(processor->regs.pc+1);
       addr += processor->regs.x;
-
+      addr &= 0xFF;
       // get byte from memory
       arg1 = MemoryGetByteAt(addr);
 
@@ -1808,7 +1854,7 @@ CpuCycle(){
             // calculate addr
       addr = MemoryGetByteAt(processor->regs.pc+1);
       addr += processor->regs.x;
-
+      addr &= 0xFF;
       // get byte from memory
       arg1 = MemoryGetByteAt(addr);
 
@@ -2004,7 +2050,7 @@ CpuCycle(){
 
       addr = MemoryGetByteAt(processor->regs.pc+1);
       addr += processor->regs.x;
-
+      addr &= 0xFF;
       // get byte from memory
       arg2 = MemoryGetByteAt(addr);
 
@@ -2307,7 +2353,8 @@ CpuCycle(){
       OPPRINTF("OPCODE_STA_ZERO_X:\n");
       arg1 = processor->regs.accumulator;
       addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x;
-      printf("arg1: %#2x, arg2: %#2x\n", arg1, arg2);
+      addr &= 0xFF;
+      //printf("arg1: %#2x, arg2: %#2x\n", arg1, arg2);
       // memmap->memory[addr] = arg1;
       MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
@@ -2451,7 +2498,8 @@ CpuCycle(){
     case OPCODE_STY_ZERO_X:
       OPPRINTF("OPCODE_STY_ZERO_X:\n");
       arg1 = processor->regs.y;
-      addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x; 
+      addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x;
+      addr &= 0xFF;
       MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 4;
