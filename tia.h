@@ -238,7 +238,8 @@ typedef struct _Tia {
   unsigned char pf0;
   unsigned char pf1;
   unsigned char pf2;
-  
+  int row;
+  int column;
 }Tia;
 
 int TiaCreate();

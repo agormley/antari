@@ -41,11 +41,13 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   assert(addr >= 0 && addr < 0x10000);
   
   ushort addr1 = (addr & MEMORY_MASK);
-
-  if (addr >= 0  && addr < 45)
-    printf("Setting TIA addr %#x\n", addr);
-
   
+  if (addr1 >= TIA_WRITE_PF0  && addr <= TIA_WRITE_PF2)
+    LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
+
+  if(addr1 == 2){
+    Wsync = true;
+  }
   //TODO: check that addr is in range'
   memmap->memory[addr1] = byte ;
 }

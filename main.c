@@ -1,8 +1,3 @@
-/* This is a very basic tutorial. It will open a
-** 640 x 480 screen and wait for the user to either close
-** the window or press escape
-*/
-
 #include "includes.h"
 
 char *UsageString = "Usage: atari <rom-name>";
@@ -10,7 +5,8 @@ char *UsageString = "Usage: atari <rom-name>";
 int
 RunProgram(STELLA* tia){
   long long counter = 0;
-
+  
+  f = fopen("x.log", "a+"); // a+ (create + append) option will allow appending which is useful in a log file
   while(1) {
     if(gQuit)
       return 1;
@@ -45,7 +41,7 @@ int main(int argc, char *argv[])
 
   MemoryCreate();
   TiaCreate();
-  ClockCreate();
+  // ClockCreate();
   //open rom
   int fd  = open(argv[1], O_RDWR);
   assert(fd >= 0);

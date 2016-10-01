@@ -17,7 +17,7 @@
 #include "memory.h"
 #include "cpu.h"
 #include "stella.h"
-#include "globals.h"
 #include "tia.h"
+#include "globals.h"
 #include "clock.h"
 #include "color.h"

@@ -23,8 +23,6 @@ void StackPushShort(ushort bytes){
 /* CpuLoopThd(void *threadid) */
 /* { */
 /*   long tid = (long)threadid; */
-
-
   
 
 /*   // Start with the reset vector */
@@ -33,7 +31,7 @@ void StackPushShort(ushort bytes){
 
   
 /* } */
-#define OPPRINTF(x, ...) 
+#define OPPRINTF(...) printf(__VA_ARGS__)
 
 int
 CpuCycle(){
@@ -50,9 +48,11 @@ CpuCycle(){
     int cycles = 0;
 
 
-    if(--processor->cycles > 0)
+    if(--processor->cycles > 0){
+      printf("cpu taking cycles: %d\n", processor->cycles);
       return processor->cycles;
-    
+    }
+      
     if(Wsync) {
       printf("CPU PAUSED\n");
       return 0;
@@ -1094,8 +1094,8 @@ CpuCycle(){
       processor->regs.accumulator = MemoryGetByteAt(tmp);
       SETSIGN(processor->regs.accumulator);
       SETZERO(processor->regs.accumulator);
-       processor->regs.pc += 2;
-       cycles = 4;
+      processor->regs.pc += 2;
+      cycles = 4;
 
       break;
     case OPCODE_LDA_ABS:
@@ -2297,7 +2297,8 @@ CpuCycle(){
       OPPRINTF("OPCODE_STA_ZERO:\n");
       arg1 = processor->regs.accumulator;
       addr = MemoryGetByteAt(processor->regs.pc+1); 
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
+      // memmap->memory[addr] = arg1;
       processor->regs.pc += 2;
       cycles = 3;
 
@@ -2307,7 +2308,8 @@ CpuCycle(){
       arg1 = processor->regs.accumulator;
       addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x;
       printf("arg1: %#2x, arg2: %#2x\n", arg1, arg2);
-      memmap->memory[addr] = arg1;
+      // memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 4;
 
@@ -2315,7 +2317,8 @@ CpuCycle(){
     case OPCODE_STA_ABS:
       OPPRINTF("OPCODE_STA_ABS:\n");
       arg1 = processor->regs.accumulator;
-      memmap->memory[MemoryGetTwoBytesAt(processor->regs.pc+1)] = arg1;
+      addr =  MemoryGetTwoBytesAt(processor->regs.pc+1);
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc = processor->regs.pc+3;
       cycles = 4;
 
@@ -2325,7 +2328,7 @@ CpuCycle(){
       arg1 = processor->regs.accumulator;
       addr = MemoryGetTwoBytesAt(processor->regs.pc+1) +
 	processor->regs.x;
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc = processor->regs.pc+3;
       cycles = 5;
 
@@ -2335,26 +2338,31 @@ CpuCycle(){
       arg1 = processor->regs.accumulator;
       addr = MemoryGetTwoBytesAt(processor->regs.pc+1) +
 	processor->regs.y;
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc = processor->regs.pc+3;
       cycles = 5;
 
       break;
     case OPCODE_STA_IND_X:
       OPPRINTF("OPCODE_STA_IND_X:\n");
+      arg1 = processor->regs.accumulator;
       tmp = MemoryGetByteAt(processor->regs.pc+1);
       tmp += processor->regs.x;
-      memmap->memory[MemoryGetTwoBytesAt(tmp)] =
-	processor->regs.accumulator;
+      addr = MemoryGetTwoBytesAt(tmp);
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 6;
 
       break;
     case OPCODE_STA_IND_Y:
       OPPRINTF("OPCODE_STA_IND_Y:\n");
-      tmp = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-      tmp += processor->regs.y;
-      memmap->memory[tmp] = processor->regs.accumulator;
+      arg1 = processor->regs.accumulator;
+     
+      addr = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
+      addr += processor->regs.y;
+      
+      MemorySetByteAt(addr, arg1);
+
       processor->regs.pc += 2;
       cycles = 6;
 
@@ -2408,7 +2416,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_STX_ZERO:\n");
       arg1 = processor->regs.x;
       addr = MemoryGetByteAt(processor->regs.pc+1); 
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 3;
 
@@ -2417,7 +2425,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_STX_ZERO_Y:\n");
       arg1 = processor->regs.x;
       addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.y; 
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 4;
 
@@ -2425,7 +2433,8 @@ CpuCycle(){
     case OPCODE_STX_ABS:
       OPPRINTF("OPCODE_STX_ABS:\n");
       arg1 = processor->regs.x;
-      memmap->memory[MemoryGetTwoBytesAt(processor->regs.pc+1)] = arg1;
+      addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc = processor->regs.pc+3;
       cycles = 4;
 
@@ -2434,7 +2443,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_STY_ZERO:\n");
       arg1 = processor->regs.y;
       addr = MemoryGetByteAt(processor->regs.pc+1); 
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 3;
            
@@ -2443,7 +2452,7 @@ CpuCycle(){
       OPPRINTF("OPCODE_STY_ZERO_X:\n");
       arg1 = processor->regs.y;
       addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x; 
-      memmap->memory[addr] = arg1;
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc += 2;
       cycles = 4;
 
@@ -2451,7 +2460,8 @@ CpuCycle(){
     case OPCODE_STY_ABS:
       OPPRINTF("OPCODE_STY_ABS:\n");
       arg1 = processor->regs.y;
-      memmap->memory[MemoryGetTwoBytesAt(processor->regs.pc+1)] = arg1;
+      addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+      MemorySetByteAt(addr, arg1);
       processor->regs.pc = processor->regs.pc+3;
       cycles = 4;
 	    
