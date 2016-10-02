@@ -19,8 +19,8 @@ void StackPushShort(ushort bytes){
   memmap->memory[( STACK_MASK | --processor->regs.sp)] = ((char*)&bytes)[1];
 }
 
-// #define OPPRINTF(...) printf(__VA_ARGS__)
-#define OPPRINTF(...) 
+#define OPPRINTF(...) printf(__VA_ARGS__)
+// #define OPPRINTF(...) 
 
 int
 CpuCycle(){
@@ -29,8 +29,8 @@ CpuCycle(){
     
   // helper vars for calculations
   ushort tmp = 0;
-  char arg1 = 0;
-  char arg2 = 0;
+  unsigned char arg1 = 0;
+  unsigned char arg2 = 0;
   ushort addr = 0;
   ushort result = 0;
   int cycles = 0;
@@ -106,7 +106,12 @@ CpuCycle(){
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+    
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -124,9 +129,14 @@ CpuCycle(){
 
       
     arg1 = processor->regs.accumulator;
-	    
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
+
+    // calculate address
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.x;
+
+    // get byte
+    arg2 = MemoryGetByteAt(tmp + addr);
+
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -135,6 +145,10 @@ CpuCycle(){
     processor->regs.pc += 3;
 
     cycles = 4;
+
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
+
     break;
       
   case OPCODE_ADC_ABS_Y:
@@ -144,8 +158,12 @@ CpuCycle(){
 
     arg1 = processor->regs.accumulator;
 	    
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.y;
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.y;
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -154,6 +172,8 @@ CpuCycle(){
     processor->regs.pc += 3;
 
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
     break;
   case OPCODE_ADC_IND_X:
     OPPRINTF("OPCODE_ADC_IND_X:\n");
@@ -162,18 +182,22 @@ CpuCycle(){
       
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetByteAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
-    arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr += processor->regs.x;
+    addr = MemoryGetTwoBytesAt(addr);
+    
+    arg2 = MemoryGetByteAt(addr);
+
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
+
     processor->regs.accumulator = result;
+
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 6;
     break;
-
       
   case OPCODE_ADC_IND_Y:
     OPPRINTF("OPCODE_ADC_IND_Y:\n");
@@ -181,9 +205,11 @@ CpuCycle(){
       
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-    arg2 += processor->regs.y;
-    arg2 = MemoryGetByteAt(tmp);
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr = MemoryGetTwoBytesAt(addr);
+    tmp = processor->regs.y;
+    
+    arg2 = MemoryGetByteAt(addr + tmp);
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -191,6 +217,9 @@ CpuCycle(){
     SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 5;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
+
     break;
   case OPCODE_AND_IMM:
     OPPRINTF("OPCODE_AND_IMM:\n");
@@ -223,6 +252,7 @@ CpuCycle(){
     tmp = MemoryGetByteAt(processor->regs.pc+1);
     tmp += processor->regs.x;
     tmp &= 0xFF;
+    
     arg1 = processor->regs.accumulator;
     arg2 = MemoryGetByteAt(tmp);
     result = arg1 & arg2;
@@ -237,7 +267,11 @@ CpuCycle(){
     OPPRINTF("OPCODE_AND_ABS:\n");
 
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+    
     result = arg1 & arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -250,35 +284,51 @@ CpuCycle(){
     OPPRINTF("OPCODE_AND_ABS_X:\n");
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.x;
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr + tmp);
+    
     result = arg1 & arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+
+    
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
     break;
   case OPCODE_AND_ABS_Y:
     OPPRINTF("OPCODE_AND_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.y;
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.y;
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 & arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+    
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
+    
     break;
 
   case OPCODE_AND_IND_X:
     OPPRINTF("OPCODE_AND_IND_X:\n");
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetByteAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr += processor->regs.x;
     arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
     result = arg1 & arg2;
     processor->regs.accumulator = result;
@@ -294,15 +344,23 @@ CpuCycle(){
       
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-    arg2 += processor->regs.y;
-    arg2 = MemoryGetByteAt(tmp);
+
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr = MemoryGetTwoBytesAt(addr);
+    tmp = processor->regs.y;
+    
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 & arg2;
+
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 5;
+    
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
     break;
 
   case OPCODE_ASL_A:
@@ -419,7 +477,12 @@ CpuCycle(){
   case OPCODE_BIT_ABS:
     OPPRINTF("OPCODE_BIT_ABS:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+
     result = arg1 & arg2;
     processor->regs.accumulator = (char)result;
     SETZERO(result);
@@ -450,7 +513,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
     }
     processor->regs.pc += 2;					    
@@ -464,7 +527,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
     }
     processor->regs.pc += 2;					    
@@ -480,7 +543,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
     }
     processor->regs.pc += 2;					    
@@ -496,7 +559,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
     }
     processor->regs.pc += 2;					    
@@ -512,7 +575,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
 
     }
@@ -528,7 +591,7 @@ CpuCycle(){
       processor->regs.pc +=
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
       cycles++;
     }
@@ -544,7 +607,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
     }
     processor->regs.pc += 2;					    
@@ -560,7 +623,7 @@ CpuCycle(){
 	(signed char)(MemoryGetByteAt(processor->regs.pc + 1));
       cycles++;
       // Does branch cross page boundary?
-      if((tmp & 0xFF) != (processor->regs.pc & 0xFF))
+      if((tmp & 0xF00) != (processor->regs.pc & 0xF00))
 	cycles++;
 
     }
@@ -570,7 +633,7 @@ CpuCycle(){
   case OPCODE_BRK:
     OPPRINTF("OPCODE_BRK:\n");
     OPPRINTF("BREAK INSTRUCTION: Not Implemented!\n");
-    assert(true == false);
+    //    assert(true == false);
     //programrunning = false;
     processor->regs.pc = processor->regs.pc+1;
     cycles = 7;
@@ -624,7 +687,12 @@ CpuCycle(){
   case OPCODE_CMP_ABS:
     OPPRINTF("OPCODE_CMP_ABS:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+    
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -638,8 +706,14 @@ CpuCycle(){
   case OPCODE_CMP_ABS_X:
     OPPRINTF("OPCODE_CMP_ABS_X:\n");
     arg1 = processor->regs.accumulator;
-    tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
+
+    // calculate address
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.x;
+
+    // get byte
+    arg2 = MemoryGetByteAt(tmp + addr);
+
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -648,13 +722,21 @@ CpuCycle(){
     SETCARRY(result);
     processor->regs.pc += 3;
     cycles = 4;
+    
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
   case OPCODE_CMP_ABS_Y:
     OPPRINTF("OPCODE_CMP_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
-    tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.y;
+
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.y;
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -664,14 +746,19 @@ CpuCycle(){
     processor->regs.pc += 3;
     cycles = 4;
 
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
     break;
 
   case OPCODE_CMP_IND_X:
     OPPRINTF("OPCODE_CMP_IND_X:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
-    arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
+
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr += processor->regs.x;
+    addr = MemoryGetTwoBytesAt(addr);
+    
+    arg2 = MemoryGetByteAt(addr);
 
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
@@ -687,9 +774,13 @@ CpuCycle(){
   case OPCODE_CMP_IND_Y:
     OPPRINTF("OPCODE_CMP_IND_Y:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-    arg2 += processor->regs.y;
-    arg2 = MemoryGetByteAt(tmp);
+
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr = MemoryGetTwoBytesAt(addr);
+    tmp = processor->regs.y;
+    
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -699,6 +790,8 @@ CpuCycle(){
     processor->regs.pc += 2;
     cycles = 5;
 
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
     break;
 
   case OPCODE_CPX_IMM:
@@ -733,7 +826,12 @@ CpuCycle(){
   case OPCODE_CPX_ABS:
     OPPRINTF("OPCODE_CPX_ABS:\n");
     arg1 = processor->regs.x;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -777,7 +875,12 @@ CpuCycle(){
   case OPCODE_CPY_ABS:
     OPPRINTF("OPCODE_CPY_ABS:\n");
     arg1 = processor->regs.y;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -819,10 +922,13 @@ CpuCycle(){
   case OPCODE_DEC_ABS:
     OPPRINTF("OPCODE_DEC_ABS:\n");
 
-    arg1 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 = MemoryGetByteAt(arg1);
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+   
     arg2--;
-    MemorySetByteAt(arg1, arg2);
+    MemorySetByteAt(addr, arg2);
     SETSIGN(arg2);
     SETZERO(arg2);
     processor->regs.pc += 3;
@@ -832,11 +938,16 @@ CpuCycle(){
 
   case OPCODE_DEC_ABS_X:
     OPPRINTF("OPCODE_DEC_ABS_X:\n");
-    arg1 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg1 += processor->regs.x;
-    arg2 = MemoryGetByteAt(arg1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.x;
+
+    // get byte
+    arg2 = MemoryGetByteAt(tmp + addr);
+
     arg2--;
-    MemorySetByteAt(arg1, arg2);
+    
+    MemorySetByteAt(addr, arg2);
     SETSIGN(arg2);
     SETZERO(arg2);
     processor->regs.pc += 3;
@@ -890,7 +1001,12 @@ CpuCycle(){
   case OPCODE_EOR_ABS:
     OPPRINTF("OPCODE_EOR_ABS:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+ 
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+    
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -904,8 +1020,13 @@ CpuCycle(){
     OPPRINTF("OPCODE_EOR_ABS_X:\n");
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
+    // calculate address
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.x;
+
+    // get byte
+    arg2 = MemoryGetByteAt(tmp + addr);
+
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -913,19 +1034,29 @@ CpuCycle(){
     processor->regs.pc += 3;
     cycles = 4;
 
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
+
     break;
       
   case OPCODE_EOR_ABS_Y:
     OPPRINTF("OPCODE_EOR_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 += processor->regs.y;
+
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.y;
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 
@@ -934,9 +1065,13 @@ CpuCycle(){
 
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetByteAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
-    arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
+
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr += processor->regs.x;
+    addr = MemoryGetTwoBytesAt(addr);
+    
+    arg2 = MemoryGetByteAt(addr);
+   
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -949,15 +1084,20 @@ CpuCycle(){
     OPPRINTF("OPCODE_EOR_IND_Y:\n");
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-    arg2 += processor->regs.y;
-    arg2 = MemoryGetByteAt(tmp);
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr = MemoryGetTwoBytesAt(addr);
+    tmp = processor->regs.y;
+    
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 5;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 
@@ -1038,10 +1178,15 @@ CpuCycle(){
 
   case OPCODE_INC_ABS:
     OPPRINTF("OPCODE_INC_ABS:\n");
-    arg1 = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    arg2 = MemoryGetByteAt(arg1);
+
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr);
+
     arg2++;
-    MemorySetByteAt(arg1, arg2);
+    
+    MemorySetByteAt(addr, arg2);
     SETSIGN(arg2);
     SETZERO(arg2);
     processor->regs.pc += 3;
@@ -1141,25 +1286,27 @@ CpuCycle(){
   case OPCODE_LDA_ABS_X:
     OPPRINTF("OPCODE_LDA_ABS_X:\n");
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    addr += processor->regs.x;
-      
-    processor->regs.accumulator = MemoryGetByteAt( addr );
+    //    addr += processor->regs.x;
+    tmp = processor->regs.x;
+    processor->regs.accumulator = MemoryGetByteAt( addr + tmp );
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;
-    if (((addr + processor->regs.x) & 0xFF) > 0x100)
+    if (((addr  & 0xFF) + tmp) > 0x100)
       cycles++;
     break;
   case OPCODE_LDA_ABS_Y:
     OPPRINTF("OPCODE_LDA_ABS_Y:\n");
-    tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    tmp += processor->regs.y;
-    processor->regs.accumulator = MemoryGetByteAt(tmp );
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.y;
+    processor->regs.accumulator = MemoryGetByteAt(tmp + addr);
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
   case OPCODE_LDA_IND_X:
@@ -1175,13 +1322,16 @@ CpuCycle(){
     break;
   case OPCODE_LDA_IND_Y:
     OPPRINTF("OPCODE_LDA_IND_Y:\n");
-    tmp = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-    tmp += processor->regs.y;
-    processor->regs.accumulator = MemoryGetByteAt(tmp);
+    addr = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
+    tmp  = processor->regs.y;
+    processor->regs.accumulator = MemoryGetByteAt(tmp + addr);
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 5;
+
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
   case OPCODE_LDX_IMM:
@@ -1230,13 +1380,20 @@ CpuCycle(){
       
   case OPCODE_LDX_ABS_Y:
     OPPRINTF("OPCODE_LDX_ABS_Y:\n");
-    tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    tmp += processor->regs.y;
-    processor->regs.x = MemoryGetByteAt(tmp );
+
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.y;
+
+    // get byte
+    arg2 = MemoryGetByteAt(addr + tmp);
+
+    processor->regs.x = arg2;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
   case OPCODE_LDY_IMM:
@@ -1284,13 +1441,21 @@ CpuCycle(){
     break;
   case OPCODE_LDY_ABS_X:
     OPPRINTF("OPCODE_LDY_ABS_X:\n");
-    tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    tmp += processor->regs.x;
-    processor->regs.y = MemoryGetByteAt(tmp );
+
+    // calculate address
+    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    tmp = processor->regs.x;
+
+    // get byte
+    arg2 = MemoryGetByteAt(tmp + addr);
+
+    processor->regs.y = arg2;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
   case OPCODE_LSR_A:
@@ -1485,12 +1650,10 @@ CpuCycle(){
 
     // Get base address
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-
-    // Address + x
-    addr += processor->regs.x;
+    tmp = processor->regs.x;
 
     // get byte
-    arg2 = MemoryGetByteAt(addr);
+    arg2 = MemoryGetByteAt(addr + tmp);
 
     result = arg1 | arg2;
     processor->regs.accumulator = result;
@@ -1498,6 +1661,8 @@ CpuCycle(){
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 
@@ -1508,12 +1673,10 @@ CpuCycle(){
 
     // Get base address
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-
-    // Address + y
-    addr += processor->regs.y;
+    tmp = processor->regs.y;
 
     // get byte
-    arg2 = MemoryGetByteAt(addr);
+    arg2 = MemoryGetByteAt(addr + tmp);
 
     result = arg1 | arg2;
       
@@ -1522,6 +1685,8 @@ CpuCycle(){
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 
@@ -1530,9 +1695,12 @@ CpuCycle(){
 
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetByteAt(processor->regs.pc+1);
-    arg2 += processor->regs.x;
-    arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr += processor->regs.x;
+    addr = MemoryGetTwoBytesAt(addr);
+    
+    arg2 = MemoryGetByteAt(addr);
+   
     result = arg1 | arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -1546,15 +1714,20 @@ CpuCycle(){
     OPPRINTF("OPCODE_ORA_IND_Y:\n");
     arg1 = processor->regs.accumulator;
 
-    arg2 = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
-    arg2 += processor->regs.y;
-    arg2 = MemoryGetByteAt(arg2);
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    addr = MemoryGetTwoBytesAt(addr);
+    tmp = processor->regs.y;
+    
+    arg2 = MemoryGetByteAt(addr + tmp);
+
     result = arg1 | arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 5;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 
@@ -2129,10 +2302,10 @@ CpuCycle(){
 	    
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    addr += processor->regs.x;
+    tmp = processor->regs.x;
       
     // get byte
-    arg2 = MemoryGetByteAt(addr);
+    arg2 = MemoryGetByteAt(addr + tmp);
 
     // Get its twos compliment
     // Negate the bits
@@ -2165,6 +2338,9 @@ CpuCycle(){
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
+
     break;
 
   case OPCODE_SBC_ABS_Y:
@@ -2175,10 +2351,10 @@ CpuCycle(){
 	    
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    addr += processor->regs.y;
+    tmp = processor->regs.y;
 
     // get byte
-    arg2 = MemoryGetByteAt(addr);
+    arg2 = MemoryGetByteAt(addr + tmp);
 
     // Get its twos compliment
     // Negate the bits
@@ -2211,6 +2387,8 @@ CpuCycle(){
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 
@@ -2284,13 +2462,10 @@ CpuCycle(){
     addr = MemoryGetTwoBytesAt(addr);
 
     // Add y to the addr
-    addr += processor->regs.y;
-
-    // Retrieve the indirect addr.
-    addr = MemoryGetByteAt(arg2);
+    tmp = processor->regs.y;
 
     // get byte
-    arg2 = MemoryGetByteAt(addr);
+    arg2 = MemoryGetByteAt(addr + tmp);
 
     // Get its twos compliment
     // Negate the bits
@@ -2323,6 +2498,8 @@ CpuCycle(){
     SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 5;
+    if (((addr  & 0xFF) + tmp) > 0x100)
+      cycles++;
 
     break;
 

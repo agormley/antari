@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 
   MemoryCreate();
   TiaCreate();
+  PiaCreate();
   // ClockCreate();
   //open rom
   int fd  = open(argv[1], O_RDWR);

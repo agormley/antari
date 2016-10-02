@@ -21,3 +21,4 @@
 #include "globals.h"
 #include "clock.h"
 #include "color.h"
+#include "pia.h"

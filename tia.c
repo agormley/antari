@@ -17,16 +17,6 @@ Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 #define TIA_LUM_MASK 0x0E
 
 
-typedef struct _playfield{
-  bool reflect;
-  bool score;
-  bool priority;
-  int ball_size;
-  int pf_color;
-  int pf_lum;
-  int bk_color;
-  int bk_lum;
-}PlayField;
 
 PlayField *playField;
 
@@ -311,7 +301,9 @@ TiaCycle()
 {
   // read all the registers!
   TiaReadRegs();
-  TiaPlayField(tia->row, tia->column);
+
+  if( 
+     TiaPlayField(tia->row, tia->column);
  
   tia->column = (tia->column + 1) % CLOCK_COUNTS;
   if(tia->column == 0) {

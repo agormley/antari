@@ -246,6 +246,18 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 //extern Uint32 framebuffer[STELLA_VERTICAL_CLOCK_COUNTS][STELLA_HORIZONTAL_LINES];
 extern Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
+typedef struct _playfield{
+  bool reflect;
+  bool score;
+  bool priority;
+  int ball_size;
+  int pf_color;
+  int pf_lum;
+  int bk_color;
+  int bk_lum;
+}PlayField;
+
+
 typedef struct _Tia {
   bool wsync;
   unsigned char pf0;
