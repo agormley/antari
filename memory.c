@@ -46,6 +46,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
 
   // check strobe registers
+  // please put vars inside a struct, preferabl tia
   switch(addr1){
   case TIA_WRITE_WSYNC:
     Wsync = true;
@@ -68,9 +69,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   case TIA_WRITE_RESBL:
     ResetBall = true;
     break;
-
-
-    
+   
   case TIA_WRITE_HMOVE:
 
     break;

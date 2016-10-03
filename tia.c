@@ -89,8 +89,9 @@ getSpritePixels(int row,
   p1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
 
   // player 0
-  if(ResetPlayer0){
+  if(ResetPlayer0 || player0->clkStart == column){
     player0->pixBit = 0;
+    player0->clkStart = column;
     ResetPlayer0 = false;
   }
 
@@ -118,8 +119,9 @@ getSpritePixels(int row,
   }
 
   // player 1
-  if(ResetPlayer1){
+  if(ResetPlayer1 || player1->clkStart == column){
     player1->pixBit = 0;
+    player1->clkStart = column;
     ResetPlayer1 = false;
 
   }

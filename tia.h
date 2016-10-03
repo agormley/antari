@@ -262,6 +262,7 @@ typedef struct _sprite
   int color;
   int lum;
   int pixBit;
+  int clkStart;
 }Sprite;
 
 typedef struct _Tia {
