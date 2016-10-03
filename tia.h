@@ -257,9 +257,16 @@ typedef struct _playfield{
   int bk_lum;
 }PlayField;
 
+typedef struct _sprite
+{
+  int color;
+  int lum;
+  int pixBit;
+}Sprite;
 
 typedef struct _Tia {
   bool wsync;
+  
   unsigned char pf0;
   unsigned char pf1;
   unsigned char pf2;

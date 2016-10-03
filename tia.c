@@ -17,7 +17,8 @@ Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 #define TIA_LUM_MASK 0x0E
 
 
-
+Sprite *player0;
+Sprite *player1;
 PlayField *playField;
 
 static
@@ -25,6 +26,11 @@ int
 TiaParsePlayField()
 {
 
+  player0->color = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_COLOR_MASK) >> 4;
+  player0->lum = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_LUM_MASK) >> 1;
+  player1->color = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_COLOR_MASK) >> 4;
+  player1->lum = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_LUM_MASK) >> 1;
+  
   playField->pf_color = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_COLOR_MASK) >> 4;
   playField->pf_lum = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_LUM_MASK) >> 1;
 
@@ -56,17 +62,126 @@ TiaParsePlayField()
   return 0;
 }
 
+int
+getSpritePixels(int row,
+		int column,
+		bool *hasP0,
+		bool *hasP1,
+		bool *hasM0,
+		bool *hasM1,
+		bool *hasB,
+		Uint32 *p0Pixel,
+		Uint32 *p1Pixel,
+		Uint32 *m0Pixel,
+		Uint32 *m1Pixel,
+		Uint32 *bPixel)
+{
+  Uint32 p0_pixel = 0;
+  Uint32 p1_pixel = 0;
+
+  ColorPalette p0_color = {0,0,0};
+  ColorPalette p1_color = {0,0,0};
+
+  p0_color = palette[player0->lum][player0->color];
+  p0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
+
+  p1_color = palette[player1->lum][player1->color];
+  p1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
+
+  // player 0
+  if(ResetPlayer0){
+    player0->pixBit = 0;
+    ResetPlayer0 = false;
+  }
+
+  if (player0->pixBit < 0 ) {
+    *hasP0 = false;
+    // could set the alpha?
+    *p0Pixel = 0;
+  } else {
+    // get p0 pixel!
+    if ( memmap->tia_write[TIA_WRITE_GRP0] &
+	 (1 << (7 - player0->pixBit))){
+      *hasP0 = true;
+      // could set the alpha?
+      *p0Pixel = p0_pixel;
+    
+    }
+    else {
+      *hasP0 = false;
+      // could set the alpha?
+      *p0Pixel = 0;
+      
+    }
+    player0->pixBit=player0->pixBit==7?-1:player0->pixBit+1;
+
+  }
+
+  // player 1
+  if(ResetPlayer1){
+    player1->pixBit = 0;
+    ResetPlayer1 = false;
+
+  }
+  
+  if (player1->pixBit < 0 ) {
+    *hasP1 = false;
+    // could set the alpha?
+    *p1Pixel = 0;
+  } else {
+    // get p1 pixel!
+    if ( memmap->tia_write[TIA_WRITE_GRP1] &
+	 (1 << (7 - player1->pixBit))){
+      *hasP1 = true;
+      // could set the alpha?
+      *p1Pixel = p1_pixel;
+      
+    }
+    else {
+      *hasP1 = false;
+      // could set the alpha?
+      *p1Pixel = 0;
+      
+    }
+    player1->pixBit=player1->pixBit==7?-1:player1->pixBit+1;
+
+  }
+
+  *hasM0 = false;
+  *hasM1 = false;
+  *hasB = false;
+    
+  *m0Pixel = 0;
+  *m1Pixel = 0;
+  *bPixel = 0;
+  
+  return 0;
+}
+				
+		
 
 int
 TiaPlayField(int row, int column){
   ColorPalette bk_color = {0,0,0};
   ColorPalette pf_color = {0,0,0};
+  
   Uint32 bk_pixel = 0;
   Uint32 pf_pixel = 0;
+  Uint32 p0_pixel = 0;
+  Uint32 p1_pixel = 0;
+  Uint32 m0_pixel = 0;
+  Uint32 m1_pixel = 0;
+  Uint32 b_pixel = 0;
+
   uint row_adj = 0;
   uint col_adj = 0;
   uint col_pixel = 0;
   bool hasPf = false;
+  bool hasP0 = false;
+  bool hasP1 = false;
+  bool hasM0 = false;
+  bool hasM1 = false;
+  bool hasB = false;
   
   // Are we in the printable area and which PF register to use?
   if ( row < VERTICAL_TIMING || row >= VERTICAL_TIMING + FRAME_LINES || column < HORIZONTAL_BLANK)
@@ -74,6 +189,7 @@ TiaPlayField(int row, int column){
   
   TiaParsePlayField();
 
+ 
   bk_color = palette[playField->bk_lum][playField->bk_color];
   bk_pixel = StellaCreatePixel(0x00, bk_color.red, bk_color.green, bk_color.blue);
 
@@ -81,10 +197,26 @@ TiaPlayField(int row, int column){
   pf_color = palette[playField->pf_lum][playField->pf_color];
   pf_pixel = StellaCreatePixel(0x00, pf_color.red, pf_color.green, pf_color.blue);
 
-  
+ 
   row_adj = row - VERTICAL_TIMING;
   col_adj = column - HORIZONTAL_BLANK;
 
+  getSpritePixels(row_adj,
+		  col_adj,
+		  &hasP0,
+		  &hasP1,
+		  &hasM0,
+		  &hasM1,
+		  &hasB,
+		  &p0_pixel,
+		  &p1_pixel,
+		  &m0_pixel,
+		  &m1_pixel,
+		  &b_pixel);
+		  
+
+  // PLEASE MOVE THIS INTO ITS OWN FUNCTION!
+  
   col_pixel = col_adj / 4;
 
   switch(col_pixel){
@@ -273,7 +405,8 @@ TiaPlayField(int row, int column){
     break;
   }
   
-  framebuffer[row_adj][col_adj] = hasPf?pf_pixel:bk_pixel;
+  framebuffer[row_adj][col_adj] = hasP0?p0_pixel:hasP1?p1_pixel:
+    hasPf?pf_pixel:bk_pixel;
 
   //  assert( framebuffer[ 192/2][75] == 0);
   
@@ -302,8 +435,7 @@ TiaCycle()
   // read all the registers!
   TiaReadRegs();
 
-  if( 
-     TiaPlayField(tia->row, tia->column);
+  TiaPlayField(tia->row, tia->column);
  
   tia->column = (tia->column + 1) % CLOCK_COUNTS;
   if(tia->column == 0) {
@@ -323,6 +455,15 @@ TiaCreate()
 
   assert(playField);
   memset(&framebuffer, 0, sizeof(int) * FRAME_CLOCK_COUNTS * FRAME_LINES);
+
+
+  player0 = calloc(1, sizeof(Sprite));
+  assert(player0);
+  player0->pixBit = -1;
+  
+  player1 = calloc(1, sizeof(Sprite));
+  assert(player1);
+  player1->pixBit = -1;
   return 0;
 }
 

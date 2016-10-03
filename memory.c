@@ -80,7 +80,8 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   case TIA_WRITE_CXCLR:
 
     break;
-
+  default:
+    break;
   }
   
   //TODO: check that addr is in range'
