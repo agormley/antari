@@ -51,13 +51,15 @@ CpuCycle(){
     
   switch(opcode){
   case OPCODE_ADC_IMM:
-    OPPRINTF("OPCODE_ADC_IMM:\n");
-
+   
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
       
     arg1 = processor->regs.accumulator;
     arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("ADC #$%.2x\n", arg2);
+
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -68,11 +70,12 @@ CpuCycle(){
     cycles = 2;
     break;
   case OPCODE_ADC_ZERO:
-    OPPRINTF("OPCODE_ADC_ZERO:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
-
+    
     arg1 = processor->regs.accumulator;
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("ADC $%.2x\n", tmp);
+
     arg2 = MemoryGetByteAt(tmp);
     result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
     processor->regs.accumulator = result;
@@ -84,11 +87,12 @@ CpuCycle(){
     break;
 
   case OPCODE_ADC_ZERO_X:
-    OPPRINTF("OPCODE_ADC_ZERO_X:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
-
-      
+    
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+
+    OPPRINTF("ADC $%.2x,X\n", tmp);
+
     tmp += processor->regs.x;
     tmp &= 0xFF;
     arg1 = processor->regs.accumulator;
@@ -102,13 +106,14 @@ CpuCycle(){
     cycles = 4;
     break;
   case OPCODE_ADC_ABS:
-    OPPRINTF("OPCODE_ADC_ABS:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     arg1 = processor->regs.accumulator;
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ADC $.4%x\n", addr);
 
+    
     // get byte
     arg2 = MemoryGetByteAt(addr);
     
@@ -123,8 +128,6 @@ CpuCycle(){
     break;
 
   case OPCODE_ADC_ABS_X:
-    OPPRINTF("OPCODE_ADC_ABS_X:\n");
-
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
       
@@ -132,6 +135,8 @@ CpuCycle(){
 
     // calculate address
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ADC $.4%x,X\n", addr);
+    
     tmp = processor->regs.x;
 
     // get byte
@@ -152,13 +157,13 @@ CpuCycle(){
     break;
       
   case OPCODE_ADC_ABS_Y:
-    OPPRINTF("OPCODE_ADC_ABS_Y:\n");
-
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
 	    
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ADC $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -176,13 +181,14 @@ CpuCycle(){
       cycles++;
     break;
   case OPCODE_ADC_IND_X:
-    OPPRINTF("OPCODE_ADC_IND_X:\n");
-
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+
+    OPPRINTF("ADC ($.2%x,X)\n", addr);
+    
     addr += processor->regs.x;
     addr = MemoryGetTwoBytesAt(addr);
     
@@ -200,12 +206,13 @@ CpuCycle(){
     break;
       
   case OPCODE_ADC_IND_Y:
-    OPPRINTF("OPCODE_ADC_IND_Y:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ADC ($.2%x),Y\n", addr);
+    
     addr = MemoryGetTwoBytesAt(addr);
     tmp = processor->regs.y;
     
@@ -222,9 +229,10 @@ CpuCycle(){
 
     break;
   case OPCODE_AND_IMM:
-    OPPRINTF("OPCODE_AND_IMM:\n");
     arg1 = processor->regs.accumulator;
     arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("AND #$%.2x\n", arg2);
+    
     result = arg1 & arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -234,9 +242,11 @@ CpuCycle(){
     cycles = 2;
     break;
   case OPCODE_AND_ZERO:
-    OPPRINTF("OPCODE_AND_ZERO:\n");
     arg1 = processor->regs.accumulator;
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("AND $%.2x\n", tmp);
+
     arg2 = MemoryGetByteAt(tmp);
     result = arg1 & arg2;
     processor->regs.accumulator = result;
@@ -248,8 +258,10 @@ CpuCycle(){
     break;
 
   case OPCODE_AND_ZERO_X:
-    OPPRINTF("OPCODE_AND_ZERO_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+
+    OPPRINTF("AND $%.2x,X\n", tmp);
+	
     tmp += processor->regs.x;
     tmp &= 0xFF;
     
@@ -264,10 +276,11 @@ CpuCycle(){
     break;
 
   case OPCODE_AND_ABS:
-    OPPRINTF("OPCODE_AND_ABS:\n");
 
     arg1 = processor->regs.accumulator;
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("AND $.4%x\n", addr);
+
 
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -281,10 +294,12 @@ CpuCycle(){
     break;
       
   case OPCODE_AND_ABS_X:
-    OPPRINTF("OPCODE_AND_ABS_X:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    OPPRINTF("AND $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
 
     // get byte
@@ -302,10 +317,11 @@ CpuCycle(){
       cycles++;
     break;
   case OPCODE_AND_ABS_Y:
-    OPPRINTF("OPCODE_AND_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("AND $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -324,10 +340,11 @@ CpuCycle(){
     break;
 
   case OPCODE_AND_IND_X:
-    OPPRINTF("OPCODE_AND_IND_X:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("AND ($.2%x,X)\n", addr);
+
     addr += processor->regs.x;
     arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
     result = arg1 & arg2;
@@ -340,12 +357,12 @@ CpuCycle(){
 
       
   case OPCODE_AND_IND_Y:
-    OPPRINTF("OPCODE_AND_IND_Y:\n");
-      
+     
     arg1 = processor->regs.accumulator;
 
-
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("AND ($.2%x),Y\n", addr);
+
     addr = MemoryGetTwoBytesAt(addr);
     tmp = processor->regs.y;
     
@@ -364,7 +381,7 @@ CpuCycle(){
     break;
 
   case OPCODE_ASL_A:
-    OPPRINTF("OPCODE_ASL_A:\n");
+    OPPRINTF("ASL A\n");
     result = processor->regs.accumulator;
     processor->regs.accumulator = (char)result << 1;
     SETSIGN(processor->regs.accumulator);
@@ -375,8 +392,9 @@ CpuCycle(){
     break;
 
   case OPCODE_ASL_ZERO:
-    OPPRINTF("OPCODE_ASL_ZERO:\n");
     addr = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("ASL: $%.2x\n", addr);
+
     arg1 = MemoryGetByteAt(addr);
     result = arg1 << 1;
     MemorySetByteAt(addr, (char)result);
@@ -388,8 +406,9 @@ CpuCycle(){
     break;
 
   case OPCODE_ASL_ZERO_X:
-    OPPRINTF("OPCODE_ASL_ZERO_X:\n");
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ASL $%.2x,X\n", addr);
+
     addr += processor->regs.x;
     addr &= 0xFF;
     arg1 = MemoryGetByteAt(addr);
@@ -403,10 +422,10 @@ CpuCycle(){
     break;
 
   case OPCODE_ASL_ABS:
-    OPPRINTF("OPCODE_ASL_ABS:\n");
-      
+     
     // get addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ASL $.4%x\n", addr);
 
     // get byte
     arg1 = MemoryGetByteAt(addr);
@@ -428,10 +447,11 @@ CpuCycle(){
     break;
       
   case OPCODE_ASL_ABS_X:
-    OPPRINTF("OPCODE_ASL_ABS_X:\n");
-
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ASL $.4%x,X\n", addr);
+
+    
     addr += processor->regs.x;
       
     // get byte
@@ -453,9 +473,14 @@ CpuCycle(){
     cycles = 7;
     break;
   case OPCODE_BIT_ZERO:
-    OPPRINTF("OPCODE_BIT_ZERO:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(MemoryGetByteAt(processor->regs.pc+1));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+      
+    OPPRINTF("BIT $%.2x\n", addr);
+
+    arg2 = MemoryGetByteAt(addr);
+
+    
     result = arg1 & arg2;
     processor->regs.accumulator = (char)result;
     SETZERO(result);
@@ -475,10 +500,10 @@ CpuCycle(){
     break;
       
   case OPCODE_BIT_ABS:
-    OPPRINTF("OPCODE_BIT_ABS:\n");
     arg1 = processor->regs.accumulator;
     
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("BIT $.4%x\n", addr);
 
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -502,7 +527,7 @@ CpuCycle(){
     break;
 
   case OPCODE_BPL:
-    OPPRINTF("OPCODE_BPL:\n");
+    OPPRINTF("BPL\n");
 
     cycles = 2;
     // Note address if branch not taken
@@ -519,7 +544,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BMI:
-    OPPRINTF("OPCODE_BMI:\n");
+    OPPRINTF("BMI\n");
     cycles = 2;
 
     if(FLAG_NEG(processor->regs.flags)) {
@@ -533,7 +558,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BVC:
-    OPPRINTF("OPCODE_BVC:\n");
+    OPPRINTF("BVC\n");
     cycles = 2;
     // Note address if branch not taken
     tmp = processor->regs.pc + 2;
@@ -549,7 +574,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BVS:
-    OPPRINTF("OPCODE_BVS:\n");
+    OPPRINTF("BVS\n");
     cycles = 2;
     // Note address if branch not taken
     tmp = processor->regs.pc + 2;
@@ -565,7 +590,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BCC:
-    OPPRINTF("OPCODE_BCC:\n");
+    OPPRINTF("BCC\n");
     cycles = 2;
     // Note address if branch not taken
     tmp = processor->regs.pc + 2;
@@ -582,7 +607,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BCS:
-    OPPRINTF("OPCODE_BCS:\n");
+    OPPRINTF("BCS\n");
     cycles = 2;
     // Note address if branch not taken
     tmp = processor->regs.pc + 2;
@@ -598,7 +623,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BNE:
-    OPPRINTF("OPCODE_BNE:\n");
+    OPPRINTF("BNE\n");
     cycles = 2;
     // Note address if branch not taken
     tmp = processor->regs.pc + 2;
@@ -613,7 +638,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BEQ:
-    OPPRINTF("OPCODE_BEQ:\n");
+    OPPRINTF("BEQ\n");
     cycles = 2;
     // Note address if branch not taken
     tmp = processor->regs.pc + 2;
@@ -631,7 +656,7 @@ CpuCycle(){
     processor->regs.pc += 2;					    
     break;
   case OPCODE_BRK:
-    OPPRINTF("OPCODE_BRK:\n");
+    OPPRINTF("BRK\n");
     OPPRINTF("BREAK INSTRUCTION: Not Implemented!\n");
     //    assert(true == false);
     //programrunning = false;
@@ -640,9 +665,11 @@ CpuCycle(){
 
     break;
   case OPCODE_CMP_IMM:
-    OPPRINTF("OPCODE_CMP_IMM:\n");
     arg1 = processor->regs.accumulator;
     arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("CMP #$%.2x\n", arg2);
+
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -654,9 +681,10 @@ CpuCycle(){
 
     break;
   case OPCODE_CMP_ZERO:
-    OPPRINTF("OPCODE_CMP_ZERO:\n");
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(MemoryGetByteAt(processor->regs.pc+1));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("CMP $%.2x\n", addr);
+    arg2 = MemoryGetByteAt(addr);
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -668,8 +696,9 @@ CpuCycle(){
 	    
     break;
   case OPCODE_CMP_ZERO_X:
-    OPPRINTF("OPCODE_CMP_ZERO_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("CMP $%.2x,X\n", tmp);
+
     tmp += processor->regs.x;
     tmp &= 0xFF;
     arg2 = MemoryGetByteAt(tmp);
@@ -685,10 +714,10 @@ CpuCycle(){
 
     break;
   case OPCODE_CMP_ABS:
-    OPPRINTF("OPCODE_CMP_ABS:\n");
     arg1 = processor->regs.accumulator;
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("CMP $.4%x\n", addr);
 
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -704,11 +733,12 @@ CpuCycle(){
 
     break;
   case OPCODE_CMP_ABS_X:
-    OPPRINTF("OPCODE_CMP_ABS_X:\n");
     arg1 = processor->regs.accumulator;
 
     // calculate address
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("CMP $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
 
     // get byte
@@ -728,10 +758,11 @@ CpuCycle(){
 
     break;
   case OPCODE_CMP_ABS_Y:
-    OPPRINTF("OPCODE_CMP_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("CMP $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -751,10 +782,11 @@ CpuCycle(){
     break;
 
   case OPCODE_CMP_IND_X:
-    OPPRINTF("OPCODE_CMP_IND_X:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("CMP ($.2%x,X)\n", addr);
+
     addr += processor->regs.x;
     addr = MemoryGetTwoBytesAt(addr);
     
@@ -772,10 +804,11 @@ CpuCycle(){
     break;
      
   case OPCODE_CMP_IND_Y:
-    OPPRINTF("OPCODE_CMP_IND_Y:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("CMP ($.2%x),Y\n", addr);
+
     addr = MemoryGetTwoBytesAt(addr);
     tmp = processor->regs.y;
     
@@ -795,10 +828,14 @@ CpuCycle(){
     break;
 
   case OPCODE_CPX_IMM:
-    OPPRINTF("OPCODE_CPX_IMM:\n");
     arg1 = processor->regs.x;
     arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("CPX #$%.2x\n", arg2);
+
     result = arg1 - arg2;
+    OPPRINTF("\targ1 %#x, arg2 %#x, result %#x\n", arg1, arg2, result);
+
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
     SETZERO(result);
@@ -809,9 +846,12 @@ CpuCycle(){
 
     break;
   case OPCODE_CPX_ZERO:
-    OPPRINTF("OPCODE_CPX_ZERO:\n");
     arg1 = processor->regs.x;
-    arg2 = MemoryGetByteAt(MemoryGetByteAt(processor->regs.pc+1));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+      
+    OPPRINTF("CPX $%.2x\n", addr);
+
+    arg2 = MemoryGetByteAt(addr);
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -824,11 +864,11 @@ CpuCycle(){
     break;
       
   case OPCODE_CPX_ABS:
-    OPPRINTF("OPCODE_CPX_ABS:\n");
     arg1 = processor->regs.x;
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
-
+    OPPRINTF("CPX $.4%x\n", addr);
+    
     // get byte
     arg2 = MemoryGetByteAt(addr);
 
@@ -844,9 +884,11 @@ CpuCycle(){
     break;
 
   case OPCODE_CPY_IMM:
-    OPPRINTF("OPCODE_CPY_IMM:\n");
     arg1 = processor->regs.y;
     arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("CPY #$%.2x\n", arg2);
+
+    
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -859,9 +901,12 @@ CpuCycle(){
     break;
 
   case OPCODE_CPY_ZERO:
-    OPPRINTF("OPCODE_CPY_ZERO:\n");
     arg1 = processor->regs.y;
-    arg2 = MemoryGetByteAt(MemoryGetByteAt(processor->regs.pc+1));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+      
+    OPPRINTF("CPY $%.2x\n", addr);
+
+    arg2 = MemoryGetByteAt(addr);
     result = arg1 - arg2;
     result==0?FLAG_NEG_CLEAR(processor->regs.flags):
       SETSIGN(arg1);
@@ -873,11 +918,11 @@ CpuCycle(){
 
     break;
   case OPCODE_CPY_ABS:
-    OPPRINTF("OPCODE_CPY_ABS:\n");
     arg1 = processor->regs.y;
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
-
+    OPPRINTF("CPY $.4%x\n", addr);
+    
     // get byte
     arg2 = MemoryGetByteAt(addr);
 
@@ -893,9 +938,11 @@ CpuCycle(){
     break;
       
   case OPCODE_DEC_ZERO:
-    OPPRINTF("OPCODE_DEC_ZERO:\n");
     arg1 = MemoryGetByteAt(processor->regs.pc+1);
     arg2 = MemoryGetByteAt(arg1);
+      
+    OPPRINTF("DEC $%.2x\n", arg1);
+    
     arg2--;
     MemorySetByteAt(arg1, arg2);
     SETSIGN(arg2);
@@ -906,8 +953,9 @@ CpuCycle(){
     break;
      
   case OPCODE_DEC_ZERO_X:
-    OPPRINTF("OPCODE_DEC_ZERO_X:\n");
     arg1 = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("DEC $%.2x,X\n", arg1);
+
     arg1 += processor->regs.x;
     arg2 = MemoryGetByteAt(arg1);
     arg2--;
@@ -920,9 +968,8 @@ CpuCycle(){
     break;
 
   case OPCODE_DEC_ABS:
-    OPPRINTF("OPCODE_DEC_ABS:\n");
-
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("DEC $.4%x\n", addr);
 
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -937,9 +984,10 @@ CpuCycle(){
     break;
 
   case OPCODE_DEC_ABS_X:
-    OPPRINTF("OPCODE_DEC_ABS_X:\n");
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("DEC $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
 
     // get byte
@@ -956,9 +1004,10 @@ CpuCycle(){
     break;
 
   case OPCODE_EOR_IMM:
-    OPPRINTF("OPCODE_EOR_IMM:\n");
     arg1 = processor->regs.accumulator;
     arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("EOR #$%.2x\n", arg2);
+
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
     SETSIGN(processor->regs.accumulator);
@@ -969,9 +1018,10 @@ CpuCycle(){
     break;
 
   case OPCODE_EOR_ZERO:
-    OPPRINTF("OPCODE_EOR_ZERO:\n");
     arg1 = processor->regs.accumulator;
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("EOR $%.2x\n", tmp);
+
     arg2 = MemoryGetByteAt(tmp);
     result = arg1 ^ arg2;
     processor->regs.accumulator = result;
@@ -983,8 +1033,9 @@ CpuCycle(){
     break;
 
   case OPCODE_EOR_ZERO_X:
-    OPPRINTF("OPCODE_EOR_ZERO_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("EOR $%.2x,X\n", tmp);
+
     tmp += processor->regs.x;
     tmp &= 0xFF;
     arg1 = processor->regs.accumulator;
@@ -999,10 +1050,10 @@ CpuCycle(){
     break;
       
   case OPCODE_EOR_ABS:
-    OPPRINTF("OPCODE_EOR_ABS:\n");
     arg1 = processor->regs.accumulator;
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("EOR $.4%x\n", addr);
  
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -1017,11 +1068,12 @@ CpuCycle(){
     break;
       
   case OPCODE_EOR_ABS_X:
-    OPPRINTF("OPCODE_EOR_ABS_X:\n");
     arg1 = processor->regs.accumulator;
 
     // calculate address
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("EOR $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
 
     // get byte
@@ -1040,10 +1092,11 @@ CpuCycle(){
     break;
       
   case OPCODE_EOR_ABS_Y:
-    OPPRINTF("OPCODE_EOR_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("EOR $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -1061,12 +1114,12 @@ CpuCycle(){
     break;
 
   case OPCODE_EOR_IND_X:
-    OPPRINTF("OPCODE_EOR_IND_X:\n");
-
     arg1 = processor->regs.accumulator;
 
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("EOR ($.2%x,X)\n", addr);
+
     addr += processor->regs.x;
     addr = MemoryGetTwoBytesAt(addr);
     
@@ -1081,10 +1134,11 @@ CpuCycle(){
             
     break;
   case OPCODE_EOR_IND_Y:
-    OPPRINTF("OPCODE_EOR_IND_Y:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("EOR ($.2%x),Y\n", addr);
+
     addr = MemoryGetTwoBytesAt(addr);
     tmp = processor->regs.y;
     
@@ -1102,57 +1156,59 @@ CpuCycle(){
     break;
 
   case OPCODE_CLC:
-    OPPRINTF("OPCODE_CLC:\n");
+    OPPRINTF("CLC\n");
     FLAG_CARRY_CLEAR(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_SEC:
-    OPPRINTF("OPCODE_SEC:\n");
+    OPPRINTF("SEC\n");
     FLAG_CARRY_SET(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_CLI:
-    OPPRINTF("OPCODE_CLI:\n");
+    OPPRINTF("CLI\n");
     FLAG_INTERRUPT_CLEAR(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_SEI:
-    OPPRINTF("OPCODE_SEI:\n");
+    OPPRINTF("SEI\n");
     FLAG_INTERRUPT_SET(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_CLV:
-    OPPRINTF("OPCODE_CLV:\n");
+    OPPRINTF("CLV\n");
     FLAG_OVER_CLEAR(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_CLD:
-    OPPRINTF("OPCODE_CLD:\n");
+    OPPRINTF("CLD\n");
     FLAG_DECIMAL_CLEAR(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_SED:
-    OPPRINTF("OPCODE_SED:\n");
+    OPPRINTF("SED\n");
     FLAG_DECIMAL_SET(processor->regs.flags);
     processor->regs.pc++;
     cycles = 2;
 
     break;
   case OPCODE_INC_ZERO:
-    OPPRINTF("OPCODE_INC_ZERO:\n");
     arg1 = MemoryGetByteAt(processor->regs.pc+1);
+
+    OPPRINTF("INC $%.2x\n", arg1);
+    
     arg2 = MemoryGetByteAt(arg1);
     arg2++;
     MemorySetByteAt(arg1, arg2);
@@ -1163,8 +1219,9 @@ CpuCycle(){
 
     break;
   case OPCODE_INC_ZERO_X:
-    OPPRINTF("OPCODE_INC_ZERO_X:\n");
     arg1 = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("INC $%.2x,X\n", arg1);
+
     arg1 += processor->regs.x;
     arg2 = MemoryGetByteAt(arg1);
     arg2++;
@@ -1177,10 +1234,10 @@ CpuCycle(){
     break;
 
   case OPCODE_INC_ABS:
-    OPPRINTF("OPCODE_INC_ABS:\n");
 
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
-
+    OPPRINTF("INC $.4%x\n", addr);
+    
     // get byte
     arg2 = MemoryGetByteAt(addr);
 
@@ -1195,10 +1252,9 @@ CpuCycle(){
     break;
 
   case OPCODE_INC_ABS_X:
-    OPPRINTF("OPCODE_INC_ABS_X:\n");
-
     // Get base address
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("INC $.4%x,X\n", addr);
 
     // Offset addr by x
     addr += processor->regs.x;
@@ -1221,30 +1277,36 @@ CpuCycle(){
     break;
 
   case OPCODE_JMP_ABS:
-    OPPRINTF("OPCODE_JMP_ABS:\n");
-    processor->regs.pc = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    addr =  MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("JMP $.4%x\n", addr);
+
+    processor->regs.pc = addr;
     cycles = 3;
 
     break;
   case OPCODE_JMP_IND:
-    OPPRINTF("OPCODE_JMP_IND:\n");
-    processor->regs.pc =
-      MemoryGetByteAt(MemoryGetTwoBytesAt(processor->regs.pc+1));
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("JSR ($.4%x)\n", addr);
+
+    processor->regs.pc = MemoryGetByteAt(addr);
     cycles = 5;
 
     break;
   case OPCODE_JSR_ABS:
-    OPPRINTF("OPCODE_JSR_ABS:\n");
-    // push address -1(?) of the next operation on to the stack
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("JSR $.4%x\n", addr);
+
     StackPushShort(processor->regs.pc + 2);
-    processor->regs.pc =
-      MemoryGetTwoBytesAt(processor->regs.pc+1);
+    processor->regs.pc = addr;
+      
     cycles = 6;
 	    
     break;
   case OPCODE_LDA_IMM:
-    OPPRINTF("OPCODE_LDA_IMM:\n");
-    processor->regs.accumulator = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("LDA #$%.2x\n", arg2);
+
+    processor->regs.accumulator = arg2;
     processor->regs.pc += 2;
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1252,8 +1314,10 @@ CpuCycle(){
 
     break;
   case OPCODE_LDA_ZERO:
-    OPPRINTF("OPCODE_LDA_ZERO:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("LDA $%.2x\n", tmp);
+
     processor->regs.accumulator = MemoryGetByteAt(tmp);
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1262,8 +1326,9 @@ CpuCycle(){
 
     break;
   case OPCODE_LDA_ZERO_X:
-    OPPRINTF("OPCODE_LDA_ZERO_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LDA $%.2x,X\n", tmp);
+
     tmp += processor->regs.x;
     tmp &= 0xFF;
     processor->regs.accumulator = MemoryGetByteAt(tmp);
@@ -1274,8 +1339,9 @@ CpuCycle(){
 
     break;
   case OPCODE_LDA_ABS:
-    OPPRINTF("OPCODE_LDA_ABS:\n");
     tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDA $.4%x\n", tmp);
+
     processor->regs.accumulator = MemoryGetByteAt(tmp );
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1284,8 +1350,9 @@ CpuCycle(){
 
     break;
   case OPCODE_LDA_ABS_X:
-    OPPRINTF("OPCODE_LDA_ABS_X:\n");
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDA $.4%x,X\n", addr);
+
     //    addr += processor->regs.x;
     tmp = processor->regs.x;
     processor->regs.accumulator = MemoryGetByteAt( addr + tmp );
@@ -1297,8 +1364,9 @@ CpuCycle(){
       cycles++;
     break;
   case OPCODE_LDA_ABS_Y:
-    OPPRINTF("OPCODE_LDA_ABS_Y:\n");
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDA $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
     processor->regs.accumulator = MemoryGetByteAt(tmp + addr);
     SETSIGN(processor->regs.accumulator);
@@ -1310,8 +1378,9 @@ CpuCycle(){
 
     break;
   case OPCODE_LDA_IND_X:
-    OPPRINTF("OPCODE_LDA_IND_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("LDA ($.2%x,X)\n", tmp);
+
     tmp += processor->regs.x;
     processor->regs.accumulator = MemoryGetByteAt(MemoryGetTwoBytesAt(tmp) );
     SETSIGN(processor->regs.accumulator);
@@ -1321,8 +1390,10 @@ CpuCycle(){
 
     break;
   case OPCODE_LDA_IND_Y:
-    OPPRINTF("OPCODE_LDA_IND_Y:\n");
-    addr = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
+    addr =  MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LDA ($.2%x),Y\n", addr);
+
+    addr = MemoryGetTwoBytesAt(addr);
     tmp  = processor->regs.y;
     processor->regs.accumulator = MemoryGetByteAt(tmp + addr);
     SETSIGN(processor->regs.accumulator);
@@ -1335,9 +1406,12 @@ CpuCycle(){
 
     break;
   case OPCODE_LDX_IMM:
-    OPPRINTF("OPCODE_LDX_IMM:\n");
-    processor->regs.x = MemoryGetByteAt(processor->regs.pc+1);
-    OPPRINTF("x: %#x\n", processor->regs.x);
+    arg2 = MemoryGetByteAt(processor->regs.pc+1);
+    MemoryGetByteAt(processor->regs.pc+1 );
+    processor->regs.x = arg2;
+    OPPRINTF("LDX #$%.2x\n", arg2);
+
+    //    OPPRINTF("x: %#x\n", processor->regs.x);
     SETSIGN(processor->regs.x);
     SETZERO(processor->regs.x);
     processor->regs.pc += 2;
@@ -1345,8 +1419,8 @@ CpuCycle(){
 
     break;
   case OPCODE_LDX_ZERO:
-    OPPRINTF("OPCODE_LDX_ZERO:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("LDX $%.2x\n", tmp);
     processor->regs.x = MemoryGetByteAt(tmp);
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1356,8 +1430,9 @@ CpuCycle(){
     break;
 
   case OPCODE_LDX_ZERO_Y:
-    OPPRINTF("OPCODE_LDX_ZERO_Y:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LDX $%.2x,Y\n", tmp);
+
     tmp += processor->regs.y;
     processor->regs.x = MemoryGetByteAt(tmp);
     SETSIGN(processor->regs.accumulator);
@@ -1368,8 +1443,9 @@ CpuCycle(){
     break;
 
   case OPCODE_LDX_ABS:
-    OPPRINTF("OPCODE_LDX_ABS:\n");
     tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDX $.4%x\n", tmp);
+
     processor->regs.x = MemoryGetByteAt(tmp );
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1379,9 +1455,10 @@ CpuCycle(){
     break;
       
   case OPCODE_LDX_ABS_Y:
-    OPPRINTF("OPCODE_LDX_ABS_Y:\n");
 
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDX $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -1397,8 +1474,10 @@ CpuCycle(){
 
     break;
   case OPCODE_LDY_IMM:
-    OPPRINTF("OPCODE_LDY_IMM:\n");
-    processor->regs.y = MemoryGetByteAt(processor->regs.pc+1);
+    arg2 = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LDY #$%.2x\n", arg2);
+    
+    processor->regs.y = arg2;
     SETSIGN(processor->regs.y);
     SETZERO(processor->regs.y);
     processor->regs.pc += 2;
@@ -1406,8 +1485,10 @@ CpuCycle(){
 
     break;
   case OPCODE_LDY_ZERO:
-    OPPRINTF("OPCODE_LDY_ZERO:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("LDY $%.2x\n", tmp);
+
     processor->regs.y = MemoryGetByteAt(tmp);
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1417,8 +1498,9 @@ CpuCycle(){
     break;
 
   case OPCODE_LDY_ZERO_X:
-    OPPRINTF("OPCODE_LDY_ZERO_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LDY $%.2x,X\n", tmp);
+	
     tmp += processor->regs.x;
     tmp &= 0xFF;
     processor->regs.y = MemoryGetByteAt(tmp);
@@ -1430,8 +1512,9 @@ CpuCycle(){
     break;
 
   case OPCODE_LDY_ABS:
-    OPPRINTF("OPCODE_LDY_ABS:\n");
     tmp = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDY $.4%x\n", tmp);
+
     processor->regs.y = MemoryGetByteAt(tmp );
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1440,10 +1523,10 @@ CpuCycle(){
 
     break;
   case OPCODE_LDY_ABS_X:
-    OPPRINTF("OPCODE_LDY_ABS_X:\n");
-
     // calculate address
     addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LDY $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
 
     // get byte
@@ -1459,7 +1542,7 @@ CpuCycle(){
 
     break;
   case OPCODE_LSR_A:
-    OPPRINTF("OPCODE_LSR_A:\n");
+    OPPRINTF("LSR A\n");
     arg1 = processor->regs.accumulator;
     processor->regs.accumulator = 0x7F & (arg1 >> 1);
     SETSIGN(processor->regs.accumulator);
@@ -1474,8 +1557,10 @@ CpuCycle(){
     break;
    
   case OPCODE_LSR_ZERO:
-    OPPRINTF("OPCODE_LSR_ZERO:\n");
     addr = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("LSR $%.2x\n", addr);
+    
     arg1 = MemoryGetByteAt(addr);
     result = 0x7F & (arg1 >> 1);
     MemorySetByteAt(addr,  (char)result);
@@ -1491,9 +1576,10 @@ CpuCycle(){
     break;
       
   case OPCODE_LSR_ZERO_X:
-    OPPRINTF("OPCODE_LSR_ZERO_X:\n");
     // calculate addr
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LSR $%.2x,X\n", addr);
+
     addr += processor->regs.x;
     addr &= 0xFF;
     // get byte
@@ -1520,10 +1606,9 @@ CpuCycle(){
     break;
 
   case OPCODE_LSR_ABS:
-    OPPRINTF("OPCODE_LSR_ABS:\n");
-
     // get addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LSR $.4%x\n", addr);
 
     // get byte
     arg1 = MemoryGetByteAt(addr);
@@ -1549,10 +1634,10 @@ CpuCycle(){
     break;
       
   case OPCODE_LSR_ABS_X:
-    OPPRINTF("OPCODE_LSR_ABS_X:\n");
-
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("LSR $.4%x,X\n", addr);
+
     addr += processor->regs.x;
       
     // get byte
@@ -1579,7 +1664,7 @@ CpuCycle(){
     break;
 
   case OPCODE_NOP:
-    OPPRINTF("OPCODE_NOP:\n");
+    OPPRINTF("NOP\n");
     // No op!
       
     // advance pc
@@ -1588,7 +1673,9 @@ CpuCycle(){
 
     break;
   case OPCODE_ORA_IMM:
-    OPPRINTF("OPCODE_ORA_IMM:\n");
+    arg2 = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ORA #$%.2x\n", arg2);
+
     processor->regs.accumulator |= MemoryGetByteAt(processor->regs.pc+1);
     SETSIGN(processor->regs.accumulator);
     SETZERO(processor->regs.accumulator);
@@ -1597,8 +1684,10 @@ CpuCycle(){
             
     break;
   case OPCODE_ORA_ZERO:
-    OPPRINTF("OPCODE_ORA_ZERO:\n");
     addr = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("ORA $%.2x\n", addr);
+
+    
     arg1 = processor->regs.accumulator;
     arg2 = MemoryGetByteAt(addr);
     result = arg1 | arg2;
@@ -1610,8 +1699,9 @@ CpuCycle(){
 
     break;
   case OPCODE_ORA_ZERO_X:
-    OPPRINTF("OPCODE_ORA_ZERO_X:\n");
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ORA $%.2x,X\n", tmp);
+
     tmp += processor->regs.x;
     tmp &= 0xFF;
     arg1 = processor->regs.accumulator;
@@ -1625,11 +1715,11 @@ CpuCycle(){
 
     break;
   case OPCODE_ORA_ABS:
-    OPPRINTF("OPCODE_ORA_ABS:\n");
     arg1 = processor->regs.accumulator;
 
     // get address
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ORA $.4%x\n", addr);
 
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -1645,11 +1735,12 @@ CpuCycle(){
     break;
       
   case OPCODE_ORA_ABS_X:
-    OPPRINTF("OPCODE_ORA_ABS_X:\n");
     arg1 = processor->regs.accumulator;
 
     // Get base address
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ORA $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
 
     // get byte
@@ -1667,12 +1758,12 @@ CpuCycle(){
     break;
 
   case OPCODE_ORA_ABS_Y:
-    OPPRINTF("OPCODE_ORA_ABS_Y:\n");
-
     arg1 = processor->regs.accumulator;
 
     // Get base address
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ORA $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -1691,11 +1782,12 @@ CpuCycle(){
     break;
 
   case OPCODE_ORA_IND_X:
-    OPPRINTF("OPCODE_ORA_IND_X:\n");
 
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ORA ($.2%x,X)\n", addr);
+
     addr += processor->regs.x;
     addr = MemoryGetTwoBytesAt(addr);
     
@@ -1711,10 +1803,11 @@ CpuCycle(){
     break;
 
   case OPCODE_ORA_IND_Y:
-    OPPRINTF("OPCODE_ORA_IND_Y:\n");
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ORA ($.2%x),Y\n", addr);
+
     addr = MemoryGetTwoBytesAt(addr);
     tmp = processor->regs.y;
     
@@ -1732,7 +1825,7 @@ CpuCycle(){
     break;
 
   case OPCODE_TAX:
-    OPPRINTF("OPCODE_TAX:\n");
+    OPPRINTF("TAX\n");
     processor->regs.x = processor->regs.accumulator;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.x);
@@ -1741,7 +1834,7 @@ CpuCycle(){
 	    
     break;
   case OPCODE_TXA:
-    OPPRINTF("OPCODE_TXA:\n");
+    OPPRINTF("TXA\n");
     processor->regs.accumulator = processor->regs.x;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.accumulator);
@@ -1750,7 +1843,7 @@ CpuCycle(){
 
     break;
   case OPCODE_DEX:
-    OPPRINTF("OPCODE_DEX:\n");
+    OPPRINTF("DEX\n");
     processor->regs.x--;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.x);
@@ -1759,9 +1852,9 @@ CpuCycle(){
 
     break;
   case OPCODE_INX:
-    OPPRINTF("OPCODE_INX:\n");
+    OPPRINTF("INX\n");
     processor->regs.x++;
-    OPPRINTF("x: %#x\n", processor->regs.x);
+    //    OPPRINTF("x: %#x\n", processor->regs.x);
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.x);
     SETZERO(processor->regs.x);
@@ -1769,7 +1862,7 @@ CpuCycle(){
 
     break;
   case OPCODE_TAY:
-    OPPRINTF("OPCODE_TAY:\n");
+    OPPRINTF("TAY\n");
     processor->regs.y = processor->regs.accumulator;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.y);
@@ -1778,7 +1871,7 @@ CpuCycle(){
 
     break;
   case OPCODE_TYA:
-    OPPRINTF("OPCODE_TYA:\n");
+    OPPRINTF("TYA\n");
     processor->regs.accumulator = processor->regs.y;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.accumulator);
@@ -1787,7 +1880,7 @@ CpuCycle(){
 
     break;
   case OPCODE_DEY:
-    OPPRINTF("OPCODE_DEY:\n");
+    OPPRINTF("DEY\n");
     processor->regs.y--;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.y);
@@ -1796,7 +1889,7 @@ CpuCycle(){
 
     break;
   case OPCODE_INY:
-    OPPRINTF("OPCODE_INY:\n");
+    OPPRINTF("INY\n");
     processor->regs.y++;
     processor->regs.pc = processor->regs.pc+1;
     SETSIGN(processor->regs.y);
@@ -1805,7 +1898,7 @@ CpuCycle(){
 
     break;
   case OPCODE_ROL_A:
-    OPPRINTF("OPCODE_ROL_A:\n");
+    OPPRINTF("ROL A\n");
     // get byte from memory
     result = processor->regs.accumulator;
     // Calculate new value
@@ -1830,9 +1923,11 @@ CpuCycle(){
     break;
       
   case OPCODE_ROL_ZERO:
-    OPPRINTF("OPCODE_ROL_ZERO:\n");
     // get byte from memory
     addr = MemoryGetByteAt(processor->regs.pc+1 );
+
+    OPPRINTF("ROL $%.2x\n", addr);
+
     arg1 = MemoryGetByteAt(addr);
 
     // Calculate new value
@@ -1856,9 +1951,10 @@ CpuCycle(){
 
     break;
   case OPCODE_ROL_ZERO_X:
-    OPPRINTF("OPCODE_ROL_ZERO_X:\n");
     // calculate addr
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ROL $%.2x,X\n", addr);
+
     addr += processor->regs.x;
     addr &= 0xFF;
     // get byte from memory
@@ -1886,10 +1982,9 @@ CpuCycle(){
     break;
 
   case OPCODE_ROL_ABS:
-    OPPRINTF("OPCODE_ROL_ABS:\n");
-            
     // get addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ROL $.4%x\n", addr);
 
     // get byte
     arg1 = MemoryGetByteAt(addr);
@@ -1918,10 +2013,10 @@ CpuCycle(){
     break;
 
   case OPCODE_ROL_ABS_X:
-    OPPRINTF("OPCODE_ROL_ABS_X:\n");
-
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ROL $.4%x,X\n", addr);
+
     addr += processor->regs.x;
       
     // get byte
@@ -1951,7 +2046,7 @@ CpuCycle(){
     break;
 
   case OPCODE_ROR_A:
-    OPPRINTF("OPCODE_ROR_A:\n");
+    OPPRINTF("ROR A\n");
 
     // get byte from memory
     arg1 = processor->regs.accumulator;
@@ -1983,9 +2078,11 @@ CpuCycle(){
     break;
 
   case OPCODE_ROR_ZERO:
-    OPPRINTF("OPCODE_ROR_ZERO:\n");
     // get byte from memory
     addr = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("ROR $%.2x\n", addr);
+
+    
     arg1 = MemoryGetByteAt(addr);
 
     // Calculate new value
@@ -2010,9 +2107,10 @@ CpuCycle(){
 
     break;
   case OPCODE_ROR_ZERO_X:
-    OPPRINTF("OPCODE_ROR_ZERO_X:\n");
     // calculate addr
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("ROR $%.2x,X\n", addr);
+
     addr += processor->regs.x;
     addr &= 0xFF;
     // get byte from memory
@@ -2041,10 +2139,9 @@ CpuCycle(){
     break;
 
   case OPCODE_ROR_ABS:
-    OPPRINTF("OPCODE_ROR_ABS:\n");
-                  
     // get addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ROR $.4%x\n", addr);
 
     // get byte
     arg1 = MemoryGetByteAt(addr);
@@ -2072,10 +2169,10 @@ CpuCycle(){
     break;
 
   case OPCODE_ROR_ABS_X:
-    OPPRINTF("OPCODE_ROR_ABS_X:\n");
-
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("ROR $.4%x,X\n", addr);
+
     addr += processor->regs.x;
       
     // get byte
@@ -2104,7 +2201,7 @@ CpuCycle(){
     break;
 
   case OPCODE_RTI:
-    OPPRINTF("OPCODE_RTI:\n");
+    OPPRINTF("RTI\n");
     /* RTI retrieves the Processor Status Word (flags) and the Program Counter from the stack in that order (interrupts push the PC first and then the PSW).  */
     processor->regs.flags = StackPopByte();
     processor->regs.pc = StackPopShort();
@@ -2112,14 +2209,12 @@ CpuCycle(){
 
     break;
   case OPCODE_RTS:
-    OPPRINTF("OPCODE_RTS:\n");
+    OPPRINTF("RTS\n");
     processor->regs.pc = StackPopShort() + 1;
     cycles = 6;
 
     break;
   case OPCODE_SBC_IMM:
-    OPPRINTF("OPCODE_SBC_IMM:\n");
-
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     // Get minuend 
@@ -2127,6 +2222,8 @@ CpuCycle(){
 
     // Get subtrahend
     arg2 = MemoryGetByteAt(processor->regs.pc+1);
+
+    OPPRINTF("SBC #$%.2x\n", arg2);
 
     // Get its twos compliment
     // Negate the bits
@@ -2161,12 +2258,13 @@ CpuCycle(){
     cycles = 2;
     break;
   case OPCODE_SBC_ZERO:
-    OPPRINTF("OPCODE_SBC_ZERO:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
 
     addr = MemoryGetByteAt(processor->regs.pc+1 );
+    OPPRINTF("SBC $%.2x\n", addr);
+    
     arg2 = MemoryGetByteAt(addr);
 
     // Get its twos compliment
@@ -2203,12 +2301,13 @@ CpuCycle(){
     break;
 
   case OPCODE_SBC_ZERO_X:
-    OPPRINTF("OPCODE_SBC_ZERO_X:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
-
+    
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("SBC $%.2x,X\n", addr);
+
     addr += processor->regs.x;
     addr &= 0xFF;
     // get byte from memory
@@ -2249,13 +2348,13 @@ CpuCycle(){
     break;
    
   case OPCODE_SBC_ABS:
-    OPPRINTF("OPCODE_SBC_ABS:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
 
     // get addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("SBC $.4%x\n", addr);
 
     // get byte
     arg2 = MemoryGetByteAt(addr);
@@ -2295,13 +2394,14 @@ CpuCycle(){
     break;
 
   case OPCODE_SBC_ABS_X:
-    OPPRINTF("OPCODE_SBC_ABS_X:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
 	    
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("SBC $.4%x,X\n", addr);
+
     tmp = processor->regs.x;
       
     // get byte
@@ -2344,13 +2444,14 @@ CpuCycle(){
     break;
 
   case OPCODE_SBC_ABS_Y:
-    OPPRINTF("OPCODE_SBC_ABS_Y:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
 	    
     // calculate addr
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("SBC $.4%x,Y\n", addr);
+
     tmp = processor->regs.y;
 
     // get byte
@@ -2393,7 +2494,6 @@ CpuCycle(){
     break;
 
   case OPCODE_SBC_IND_X:
-    OPPRINTF("OPCODE_SBC_IND_X:\n");
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
       
@@ -2403,6 +2503,8 @@ CpuCycle(){
       
     // get the operand
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("SBC ($.2%x,X)\n", addr);
+
     // add value of x to it
     addr += processor->regs.x;
 
@@ -2447,8 +2549,6 @@ CpuCycle(){
     break;
       
   case OPCODE_SBC_IND_Y:
-    OPPRINTF("OPCODE_SBC_IND_Y:\n");
-
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
@@ -2457,6 +2557,8 @@ CpuCycle(){
 
     // Get the operand
     addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("SBC ($.2%x),Y\n", addr);
+
 
     // Get the base memory address
     addr = MemoryGetTwoBytesAt(addr);
@@ -2504,9 +2606,10 @@ CpuCycle(){
     break;
 
   case OPCODE_STA_ZERO:
-    OPPRINTF("OPCODE_STA_ZERO:\n");
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetByteAt(processor->regs.pc+1); 
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STA $%.2x\n", addr);
+    
     MemorySetByteAt(addr, arg1);
     // memmap->memory[addr] = arg1;
     processor->regs.pc += 2;
@@ -2514,9 +2617,11 @@ CpuCycle(){
 
     break;
   case OPCODE_STA_ZERO_X:
-    OPPRINTF("OPCODE_STA_ZERO_X:\n");
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x;
+    arg2 = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STA $%.2x,X\n", arg2);
+
+    addr = arg2 + processor->regs.x;
     addr &= 0xFF;
     //printf("arg1: %#2x, arg2: %#2x\n", arg1, arg2);
     // memmap->memory[addr] = arg1;
@@ -2526,38 +2631,43 @@ CpuCycle(){
 
     break;
   case OPCODE_STA_ABS:
-    OPPRINTF("OPCODE_STA_ABS:\n");
     arg1 = processor->regs.accumulator;
     addr =  MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("STA $.4%x\n", addr);
+
     MemorySetByteAt(addr, arg1);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;
 
     break;
   case OPCODE_STA_ABS_X:
-    OPPRINTF("OPCODE_STA_ABS_X:\n");
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1) +
-      processor->regs.x;
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    OPPRINTF("STA $.4%x,X\n", addr);
+
+    addr += processor->regs.x;
     MemorySetByteAt(addr, arg1);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 5;
 
     break;
   case OPCODE_STA_ABS_Y:
-    OPPRINTF("OPCODE_STA_ABS_Y:\n");
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1) +
-      processor->regs.y;
+    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("STA $.4%x,Y\n", addr);
+
+    addr  +=   processor->regs.y;
     MemorySetByteAt(addr, arg1);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 5;
 
     break;
   case OPCODE_STA_IND_X:
-    OPPRINTF("OPCODE_STA_IND_X:\n");
     arg1 = processor->regs.accumulator;
     tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STA ($.2%x,X)\n", tmp);
+
     tmp += processor->regs.x;
     addr = MemoryGetTwoBytesAt(tmp);
     MemorySetByteAt(addr, arg1);
@@ -2566,10 +2676,10 @@ CpuCycle(){
 
     break;
   case OPCODE_STA_IND_Y:
-    OPPRINTF("OPCODE_STA_IND_Y:\n");
     arg1 = processor->regs.accumulator;
-     
-    addr = MemoryGetTwoBytesAt(MemoryGetByteAt(processor->regs.pc+1));
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STA ($.2%x),Y\n", addr);
+    addr = MemoryGetTwoBytesAt(addr);
     addr += processor->regs.y;
       
     MemorySetByteAt(addr, arg1);
@@ -2579,21 +2689,21 @@ CpuCycle(){
 
     break;
   case OPCODE_TXS:
-    OPPRINTF("OPCODE_TXS:\n");
+    OPPRINTF("TXS\n");
     processor->regs.sp = processor->regs.x;
     processor->regs.pc = processor->regs.pc+1;
     cycles = 2;
 
     break;
   case OPCODE_TSX:
-    OPPRINTF("OPCODE_TSX:\n");
+    OPPRINTF("TSX\n");
     processor->regs.x = processor->regs.sp;
     processor->regs.pc = processor->regs.pc+1;
     cycles = 2;
 
     break;
   case OPCODE_PHA:
-    OPPRINTF("OPCODE_PHA:\n");
+    OPPRINTF("PHA\n");
     StackPushByte(processor->regs.accumulator);
     processor->regs.pc = processor->regs.pc+1;
     cycles = 3;
@@ -2601,7 +2711,7 @@ CpuCycle(){
     break;      
       
   case OPCODE_PLA:
-    OPPRINTF("OPCODE_PLA:\n");
+    OPPRINTF("PLA\n");
     processor->regs.accumulator = StackPopByte();
     processor->regs.pc = processor->regs.pc+1;
     cycles = 4;
@@ -2609,7 +2719,7 @@ CpuCycle(){
     break;      
 
   case OPCODE_PHP:
-    OPPRINTF("OPCODE_PHP:\n");
+    OPPRINTF("PHP\n");
     StackPushByte(processor->regs.flags);
     processor->regs.pc = processor->regs.pc+1;
     cycles = 3;
@@ -2617,52 +2727,59 @@ CpuCycle(){
     break;      
 
   case OPCODE_PLP:
-    OPPRINTF("OPCODE_PLP:\n");
+    OPPRINTF("PLP\n");
     processor->regs.flags = StackPopByte();
     processor->regs.pc = processor->regs.pc+1;
     cycles = 4;
 
     break;      
   case OPCODE_STX_ZERO:
-    OPPRINTF("OPCODE_STX_ZERO:\n");
     arg1 = processor->regs.x;
-    addr = MemoryGetByteAt(processor->regs.pc+1); 
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STX $%.2x\n", addr);
+
     MemorySetByteAt(addr, arg1);
     processor->regs.pc += 2;
     cycles = 3;
 
     break;
   case OPCODE_STX_ZERO_Y:
-    OPPRINTF("OPCODE_STX_ZERO_Y:\n");
+    tmp = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("LDX $%.2x,Y\n", tmp);
+
     arg1 = processor->regs.x;
-    addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.y; 
+    addr = tmp  + processor->regs.y; 
     MemorySetByteAt(addr, arg1);
     processor->regs.pc += 2;
     cycles = 4;
 
     break;
   case OPCODE_STX_ABS:
-    OPPRINTF("OPCODE_STX_ABS:\n");
     arg1 = processor->regs.x;
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("STX $.4%x\n", addr);
+
     MemorySetByteAt(addr, arg1);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;
 
     break;
   case OPCODE_STY_ZERO:
-    OPPRINTF("OPCODE_STY_ZERO:\n");
     arg1 = processor->regs.y;
-    addr = MemoryGetByteAt(processor->regs.pc+1); 
+    addr = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STY $%.2x\n", addr);
+
     MemorySetByteAt(addr, arg1);
     processor->regs.pc += 2;
     cycles = 3;
            
     break;
   case OPCODE_STY_ZERO_X:
-    OPPRINTF("OPCODE_STY_ZERO_X:\n");
     arg1 = processor->regs.y;
-    addr = MemoryGetByteAt(processor->regs.pc+1) + processor->regs.x;
+    arg2 = MemoryGetByteAt(processor->regs.pc+1);
+    OPPRINTF("STY $%.2x,X\n", arg2);
+
+    addr = arg2 + processor->regs.x;
     addr &= 0xFF;
     MemorySetByteAt(addr, arg1);
     processor->regs.pc += 2;
@@ -2670,9 +2787,10 @@ CpuCycle(){
 
     break;
   case OPCODE_STY_ABS:
-    OPPRINTF("OPCODE_STY_ABS:\n");
     arg1 = processor->regs.y;
     addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    OPPRINTF("STY $.4%x\n", addr);
+
     MemorySetByteAt(addr, arg1);
     processor->regs.pc = processor->regs.pc+3;
     cycles = 4;

@@ -202,7 +202,7 @@ TiaPlayField(int row, int column){
  
   row_adj = row - VERTICAL_TIMING;
   col_adj = column - HORIZONTAL_BLANK;
-
+  printf("row: %d, col %d\n", row, column);
   getSpritePixels(row_adj,
 		  col_adj,
 		  &hasP0,
