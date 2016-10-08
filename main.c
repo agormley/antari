@@ -14,7 +14,8 @@ RunProgram(STELLA* tia){
       CpuCycle();
     
     TiaCycle();
-
+    PiaCycle();
+    
     if(counter % (STELLA_VERTICAL_CLOCK_COUNTS*STELLA_HORIZONTAL_LINES) == 0){
       StellaPrintFrame(tia, framebuffer);
     }
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
   PiaCreate();
   // ClockCreate();
   //open rom
-  int fd  = open(argv[1], O_RDWR);
+  int fd  = open(argv[1], O_RDONLY);
   assert(fd >= 0);
   read(fd, memmap->rom, ROM_SIZE);
   

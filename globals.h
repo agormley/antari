@@ -1,6 +1,8 @@
 extern Cpu *processor;
 extern MemoryMap *memmap;
 extern Tia *tia;
+extern Pia *pia;
+
 extern bool Wsync;
 extern bool ResetPlayer0;
 extern bool ResetPlayer1;

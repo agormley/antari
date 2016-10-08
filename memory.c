@@ -27,9 +27,17 @@ MemoryGetByteAt(unsigned short addr)
   if (addr >= 280  && addr < 299)
     printf("Getting PIA addr %#x\n", addr);
 
-  if (addr >= 0  && addr < 45)
-    printf("Getting TIA addr %#x\n", addr);
-
+  /* if (addr >= 0  && addr < 45) */
+  /*   printf("Getting TIA addr %#x\n", addr); */
+  switch(addr){
+    //clear button presses on read.
+  case SWCHB:
+    pia->game_select = false;
+    pia->game_reset = false;
+    break;
+  default:
+    break;
+  }
   
   byte = memmap->memory[addr1];
   return byte;
@@ -69,7 +77,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   case TIA_WRITE_RESBL:
     ResetBall = true;
     break;
-   
+ 
   case TIA_WRITE_HMOVE:
 
     break;
@@ -79,8 +87,34 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   case TIA_WRITE_CXCLR:
 
     break;
+  case TIM1T:
+    pia->timer_pending = true;
+    pia->timer_interval = 1;
+    pia->timer_interval_timer = 0;
+    pia->timer = byte;
+    break;
+  case TIM8T:
+    pia->timer_pending = true;
+    pia->timer_interval = 8;
+    pia->timer_interval_timer = 0;
+    pia->timer = byte;
+    break;
+  case TIM64T:
+    pia->timer_pending = true;
+    pia->timer_interval = 64;
+    pia->timer_interval_timer = 0;
+    pia->timer = byte;
+    break;
+  case T1024T:
+    pia->timer_pending = true;
+    pia->timer_interval = 1024;
+    pia->timer_interval_timer = 0;
+    pia->timer = byte;
+    break;
+
   default:
     break;
+    
   }
   
   //TODO: check that addr is in range'

@@ -25,7 +25,34 @@ StellaProcessEvent(SDL_Event event){
     // TODO: move to keypress event handle
     switch( event.key.keysym.sym ){
     case SDLK_F1:
-      // set reset
+      pia->game_reset = true;
+      break;
+    case SDLK_F2:
+      pia->game_select = true;
+      break;
+    case SDLK_F3:
+      pia->color = pia->color?false:true;
+      break;
+    case SDLK_F4:
+      pia->p0difficulty = true;
+      break;
+    case SDLK_F5:
+      pia->p1difficulty = true;
+      break;
+    case SDLK_LEFT:
+      pia->p0left = true;
+      break;
+    case SDLK_RIGHT:
+      pia->p0right = true;
+      break;
+    case SDLK_UP:
+      pia->p0up = true;
+      break;
+    case SDLK_DOWN:
+      pia->p0down = true;
+      break;
+    case SDLK_SPACE:
+      pia->p0button = true;
       break;
     default:
       break;

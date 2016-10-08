@@ -202,7 +202,7 @@ TiaPlayField(int row, int column){
  
   row_adj = row - VERTICAL_TIMING;
   col_adj = column - HORIZONTAL_BLANK;
-  printf("row: %d, col %d\n", row, column);
+  //  printf("row: %d, col %d\n", row, column);
   getSpritePixels(row_adj,
 		  col_adj,
 		  &hasP0,
@@ -417,17 +417,29 @@ TiaPlayField(int row, int column){
 
 int TiaReadRegs()
 {
+  static bool vsync_on = false;
+  static bool vblank_on = false;
   
   if(memmap->tia_write[TIA_WRITE_VSYNC] & (1<<1))
     {
-      tia->row = VERTICAL_SYNC - 1;
+      vsync_on = true;
+      tia->row = 0;
+    }
+  else if (vsync_on)
+    {
+      vsync_on = false;
+      tia->row = VERTICAL_SYNC;
     }
   if(memmap->tia_write[TIA_WRITE_VBLANK] & (1<<1))
     {
       //printf("VBLANK\n");
-      tia->row = 0;
+      tia->row = VERTICAL_SYNC;
     }
-
+  else if (vblank_on)
+    {
+      vblank_on = false;
+      tia->row = VERTICAL_TIMING;
+    }
   return 0;
 }
 

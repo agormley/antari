@@ -26,10 +26,36 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 #define     SWBCNT   0x283 //  11111111  Port B DDR (hardwired as input)
 #define     INTIM   0x284 //   11111111  Timer output (read only)
 #define    INSTAT   0x285  // 11......  Timer Status (read only, undocumented)
-#define    TIM1T   0x294  //   11111111  set 1 clock interval (838 nsec/interval)
-#define    TIM8T  0x295 //   11111111  set 8 clock interval (6.7 usec/interval)
+
+ //   11111111  set 1 clock interval (838 nsec/interval)
+#define TIM1T    0x294 
+
+//   11111111  set 8 clock interval (6.7 usec/interval)
+#define    TIM8T  0x295
 #define    TIM64T   0x296  ///11111111  set 64 clock interval (53.6 usec/interval)
 #define     T1024T  0x297 //  11111111  set 1024 clock interval (858.2 usec/interval)
+typedef struct _pia{
+  unsigned char timer;
+  bool timer_pending;
+  int timer_interval;
+  int timer_interval_timer;
+  bool p0difficulty;
+  bool p1difficulty;
+
+  bool color;
+
+  bool game_select;
+  bool game_reset;
+  struct {
+    bool p0left;
+    bool p0right;
+    bool p0up;
+    bool p0down;
+    bool p0button;
+  };
+}Pia;
 
 int
 PiaCreate();
+int
+PiaCycle();

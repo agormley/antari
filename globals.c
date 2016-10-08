@@ -2,6 +2,7 @@
 Cpu *processor;
 MemoryMap *memmap;
 Tia *tia;
+Pia *pia;
 
 // strobe regs
 bool Wsync = false;

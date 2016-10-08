@@ -18,7 +18,8 @@
 #include "cpu.h"
 #include "stella.h"
 #include "tia.h"
+#include "pia.h"
+
 #include "globals.h"
 #include "clock.h"
 #include "color.h"
-#include "pia.h"
