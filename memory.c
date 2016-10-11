@@ -79,9 +79,10 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     break;
  
   case TIA_WRITE_HMOVE:
-
+    tia->hMotionPending = true;
     break;
   case TIA_WRITE_HMCLR:
+    TiaClearHMotion();
 
     break;
   case TIA_WRITE_CXCLR:

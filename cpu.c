@@ -51,102 +51,67 @@ CpuCycle(){
     
   switch(opcode){
   case OPCODE_ADC_IMM:
-   
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
-
-      
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
-
+    arg2 = getImmediate(processor->regs.pc+1 );
+    
     OPPRINTF("ADC #$%.2x\n", arg2);
-
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
+    
+    processor->regs.accumulator = add(arg1, arg2, FLAG_CARRY(processor->regs.flags));
+    
     processor->regs.pc += 2;
     cycles = 2;
     break;
   case OPCODE_ADC_ZERO:
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
     
     arg1 = processor->regs.accumulator;
-    tmp = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2  = getZero(processor->regs.pc+1, &tmp);
+
     OPPRINTF("ADC $%.2x\n", tmp);
 
-    arg2 = MemoryGetByteAt(tmp);
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
+    processor->regs.accumulator = add(arg1, arg2, FLAG_CARRY(processor->regs.flags));
+
     processor->regs.pc += 2;
     cycles = 3;
     break;
 
   case OPCODE_ADC_ZERO_X:
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
-    
-    tmp = MemoryGetByteAt(processor->regs.pc+1);
+
+    arg1 = processor->regs.accumulator;
+    arg2  = getZeroX(processor->regs.pc+1, &tmp);
 
     OPPRINTF("ADC $%.2x,X\n", tmp);
 
-    tmp += processor->regs.x;
-    tmp &= 0xFF;
-    arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(tmp);
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
+    processor->regs.accumulator =
+      add(arg1, arg2, FLAG_CARRY(processor->regs.flags));
+
     processor->regs.pc += 2;
     cycles = 4;
     break;
   case OPCODE_ADC_ABS:
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
-      
+
     arg1 = processor->regs.accumulator;
+    arg2  = getAbsolute(processor->regs.pc+1, &tmp);
 
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    OPPRINTF("ADC $%.4x\n", addr);
+    OPPRINTF("ADC $%.4x\n", tmp);
+    
+    processor->regs.accumulator =
+      add(arg1, arg2, FLAG_CARRY(processor->regs.flags)); 
 
-    
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
-    
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
     processor->regs.pc += 3;
     cycles = 4;
-      
+    
     break;
 
   case OPCODE_ADC_ABS_X:
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
-      
     arg1 = processor->regs.accumulator;
-
-    // calculate address
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    OPPRINTF("ADC $%.4x,X\n", addr);
+    arg2  = getAbsoluteX(processor->regs.pc+1, &tmp);
     
-    tmp = processor->regs.x;
+    OPPRINTF("ADC $%.4x,X\n", tmp);
+    
+    processor->regs.accumulator =
+      add(arg1, arg2, FLAG_CARRY(processor->regs.flags)); 
 
-    // get byte
-    arg2 = MemoryGetByteAt(tmp + addr);
-
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
     processor->regs.pc += 3;
 
     cycles = 4;
@@ -157,23 +122,15 @@ CpuCycle(){
     break;
       
   case OPCODE_ADC_ABS_Y:
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
     arg1 = processor->regs.accumulator;
-	    
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    OPPRINTF("ADC $%.4x,Y\n", addr);
+    arg2  = getAbsoluteX(processor->regs.pc+1, &tmp);
+    
+    OPPRINTF("ADC $%.4x,Y\n", tmp);
+    
+    processor->regs.accumulator =
+      add(arg1, arg2, FLAG_CARRY(processor->regs.flags)); 
 
-    tmp = processor->regs.y;
-
-    // get byte
-    arg2 = MemoryGetByteAt(addr + tmp);
-
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
     processor->regs.pc += 3;
 
     cycles = 4;
@@ -181,26 +138,15 @@ CpuCycle(){
       cycles++;
     break;
   case OPCODE_ADC_IND_X:
-    assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     arg1 = processor->regs.accumulator;
+    arg2 = getIndirectX(processor->regs.pc+1, &tmp);
 
-    addr = MemoryGetByteAt(processor->regs.pc+1);
-
-    OPPRINTF("ADC ($.2%x,X)\n", addr);
+    OPPRINTF("ADC ($.2%x,X)\n", tmp);
     
-    addr += processor->regs.x;
-    addr = MemoryGetTwoBytesAt(addr);
-    
-    arg2 = MemoryGetByteAt(addr);
+    processor->regs.accumulator =
+      add(arg1, arg2, FLAG_CARRY(processor->regs.flags)); 
 
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-
-    processor->regs.accumulator = result;
-
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 6;
     break;
@@ -209,68 +155,54 @@ CpuCycle(){
     assert(!FLAG_DECIMAL(processor->regs.flags)); 
       
     arg1 = processor->regs.accumulator;
+    arg2 = getIndirectX(processor->regs.pc+1, &tmp);
+    OPPRINTF("ADC ($.2%x),Y\n", tmp);
+    
+    processor->regs.accumulator =
+      add(arg1, arg2, FLAG_CARRY(processor->regs.flags)); 
 
-    addr = MemoryGetByteAt(processor->regs.pc+1);
-    OPPRINTF("ADC ($.2%x),Y\n", addr);
-    
-    addr = MemoryGetTwoBytesAt(addr);
-    tmp = processor->regs.y;
-    
-    arg2 = MemoryGetByteAt(addr + tmp);
-    result = arg1 + arg2 + FLAG_CARRY(processor->regs.flags);
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
     processor->regs.pc += 2;
+
     cycles = 5;
+
     if (((addr  & 0xFF) + tmp) > 0x100)
       cycles++;
 
     break;
   case OPCODE_AND_IMM:
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = getImmediate(processor->regs.pc+1 );
+
     OPPRINTF("AND #$%.2x\n", arg2);
-    
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+
+    processor->regs.accumulator = and(arg1, arg2);
+
     processor->regs.pc += 2;
 
     cycles = 2;
     break;
+    
   case OPCODE_AND_ZERO:
     arg1 = processor->regs.accumulator;
-    tmp = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = getZero(processor->regs.pc+1, &tmp );
 
     OPPRINTF("AND $%.2x\n", tmp);
 
-    arg2 = MemoryGetByteAt(tmp);
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    processor->regs.accumulator = and(arg1, arg2);
+
     processor->regs.pc += 2;
 
     cycles = 3;
     break;
 
   case OPCODE_AND_ZERO_X:
-    tmp = MemoryGetByteAt(processor->regs.pc+1);
+    arg1 = processor->regs.accumulator;
+    arg2 = getZeroX(processor->regs.pc+1, &tmp);
 
     OPPRINTF("AND $%.2x,X\n", tmp);
-	
-    tmp += processor->regs.x;
-    tmp &= 0xFF;
-    
-    arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(tmp);
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+
+    processor->regs.accumulator = and(arg1, arg2);
+
     processor->regs.pc += 2;
     cycles = 4;
     break;
@@ -278,17 +210,12 @@ CpuCycle(){
   case OPCODE_AND_ABS:
 
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    arg2 = getAbsolute(processor->regs.pc+1, &tmp);
+    
     OPPRINTF("AND $%.4x\n", addr);
 
+    processor->regs.accumulator = and(arg1, arg2);
 
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
-    
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
     break;
@@ -296,22 +223,14 @@ CpuCycle(){
   case OPCODE_AND_ABS_X:
     arg1 = processor->regs.accumulator;
 
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    arg2 = getAbsoluteX(processor->regs.pc+1, &tmp);
 
     OPPRINTF("AND $%.4x,X\n", addr);
 
-    tmp = processor->regs.x;
+    processor->regs.accumulator = and(arg1, arg2);
 
-    // get byte
-    arg2 = MemoryGetByteAt(addr + tmp);
-    
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
-
     
     if (((addr  & 0xFF) + tmp) > 0x100)
       cycles++;
@@ -319,18 +238,12 @@ CpuCycle(){
   case OPCODE_AND_ABS_Y:
     arg1 = processor->regs.accumulator;
 
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    arg2 = getAbsoluteY(processor->regs.pc+1, &tmp);
+
     OPPRINTF("AND $%.4x,Y\n", addr);
 
-    tmp = processor->regs.y;
+    processor->regs.accumulator = and(arg1, arg2);
 
-    // get byte
-    arg2 = MemoryGetByteAt(addr + tmp);
-
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
     
@@ -342,15 +255,12 @@ CpuCycle(){
   case OPCODE_AND_IND_X:
     arg1 = processor->regs.accumulator;
 
-    addr = MemoryGetByteAt(processor->regs.pc+1);
+    arg2 = getIndirectX(processor->regs.pc+1, &tmp);
+
     OPPRINTF("AND ($.2%x,X)\n", addr);
 
-    addr += processor->regs.x;
-    arg2 = MemoryGetByteAt(MemoryGetTwoBytesAt(arg2));
-    result = arg1 & arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    processor->regs.accumulator = and(arg1, arg2);
+
     processor->regs.pc += 2;
     cycles = 6;
     break;
@@ -360,19 +270,12 @@ CpuCycle(){
      
     arg1 = processor->regs.accumulator;
 
-    addr = MemoryGetByteAt(processor->regs.pc+1);
+    arg2 = getIndirectY(processor->regs.pc+1, &tmp);
+
     OPPRINTF("AND ($.2%x),Y\n", addr);
 
-    addr = MemoryGetTwoBytesAt(addr);
-    tmp = processor->regs.y;
-    
-    arg2 = MemoryGetByteAt(addr + tmp);
+    processor->regs.accumulator = and(arg1, arg2);
 
-    result = arg1 & arg2;
-
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 5;
     
@@ -382,49 +285,41 @@ CpuCycle(){
 
   case OPCODE_ASL_A:
     OPPRINTF("ASL A\n");
-    result = processor->regs.accumulator;
-    processor->regs.accumulator = (char)result << 1;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    SETCARRY(result);
+    arg1 = processor->regs.accumulator;
+
+    processor->regs.accumulator = asl(arg1);
+
     processor->regs.pc += 1;
     cycles = 2;
     break;
 
   case OPCODE_ASL_ZERO:
-    addr = MemoryGetByteAt(processor->regs.pc+1 );
+    
+    arg1 = getZero(processor->regs.pc+1, &addr);
+
     OPPRINTF("ASL: $%.2x\n", addr);
 
-    arg1 = MemoryGetByteAt(addr);
-    result = arg1 << 1;
-    MemorySetByteAt(addr, (char)result);
-    SETSIGN((char)result);
-    SETZERO((char)result);
-    SETCARRY(result);
+    MemorySetByteAt(addr, asl(arg1));
+
     processor->regs.pc += 2;
     cycles = 5;
     break;
 
   case OPCODE_ASL_ZERO_X:
-    addr = MemoryGetByteAt(processor->regs.pc+1);
+    arg1 = getZeroX(processor->regs.pc+1, &addr);
+
     OPPRINTF("ASL $%.2x,X\n", addr);
 
-    addr += processor->regs.x;
-    addr &= 0xFF;
-    arg1 = MemoryGetByteAt(addr);
-    result = arg1 << 1;
-    MemorySetByteAt(addr, (char)result);
-    SETSIGN((char)result);
-    SETZERO((char)result);
-    SETCARRY(result);
+    MemorySetByteAt(addr, asl(arg1));
+
     processor->regs.pc += 2;
     cycles = 6;
     break;
 
   case OPCODE_ASL_ABS:
-     
-    // get addr
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+
+    arg1 = getZeroX(processor->regs.pc+1, &tmp);
+
     OPPRINTF("ASL $%.4x\n", addr);
 
     // get byte

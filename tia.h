@@ -246,6 +246,15 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 //extern Uint32 framebuffer[STELLA_VERTICAL_CLOCK_COUNTS][STELLA_HORIZONTAL_LINES];
 extern Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
+typedef struct _sprite
+{
+  int color;
+  int lum;
+  int pixBit;
+  int clkStart;
+  int hMotion;
+}Sprite;
+
 typedef struct _playfield{
   bool reflect;
   bool score;
@@ -255,15 +264,9 @@ typedef struct _playfield{
   int pf_lum;
   int bk_color;
   int bk_lum;
+
 }PlayField;
 
-typedef struct _sprite
-{
-  int color;
-  int lum;
-  int pixBit;
-  int clkStart;
-}Sprite;
 
 typedef struct _Tia {
   bool wsync;
@@ -273,7 +276,15 @@ typedef struct _Tia {
   unsigned char pf2;
   int row;
   int column;
+  bool hMotionPending;
+  
+  Sprite *player0;
+  Sprite *player1;
+  PlayField *playfield;
 }Tia;
 
 int TiaCreate();
 int TiaCycle();
+int
+TiaConvertHmToInt(BYTE hm);
+int TiaClearHMotion();

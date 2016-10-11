@@ -4,6 +4,25 @@
 
 Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
+int
+TiaConvertHmToInt(BYTE hm)
+{
+  int result = 0;
+  int sign = 0;
+
+  sign = hm & 0x80;
+  result = hm & 0x70;
+  result = result >> 4;
+
+  if(sign){
+    result++;
+
+    result = -result;
+
+  }
+
+  return result;
+}
 
 #define  PF0 (memmap->tia_write[TIA_WRITE_PF0])
 #define  PF1 (memmap->tia_write[TIA_WRITE_PF1])
@@ -87,66 +106,90 @@ getSpritePixels(int row,
 
   p1_color = palette[player1->lum][player1->color];
   p1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
+  // is this the right place for horizontal motion?
+  if(tia->hMotionPending){
+    tia->hMotionPending = false;
+    player0->clkStart += player0->hMotion;
+    if(player0->clkStart < 0)
+      player0->clkStart = 0;
 
-  // player 0
-  if(ResetPlayer0 || player0->clkStart == column){
-    player0->pixBit = 0;
-    player0->clkStart = column;
-    ResetPlayer0 = false;
-  }
 
-  if (player0->pixBit < 0 ) {
-    *hasP0 = false;
-    // could set the alpha?
-    *p0Pixel = 0;
-  } else {
-    // get p0 pixel!
-    if ( memmap->tia_write[TIA_WRITE_GRP0] &
-	 (1 << (7 - player0->pixBit))){
-      *hasP0 = true;
-      // could set the alpha?
-      *p0Pixel = p0_pixel;
-    
-    }
-    else {
-      *hasP0 = false;
-      // could set the alpha?
-      *p0Pixel = 0;
-      
-    }
-    player0->pixBit=player0->pixBit==7?-1:player0->pixBit+1;
-
-  }
-
-  // player 1
-  if(ResetPlayer1 || player1->clkStart == column){
-    player1->pixBit = 0;
-    player1->clkStart = column;
-    ResetPlayer1 = false;
+    player1->clkStart += player1->hMotion;
+    if(player1->clkStart < 0)
+      player1->clkStart = 0;
 
   }
   
-  if (player1->pixBit < 0 ) {
-    *hasP1 = false;
-    // could set the alpha?
-    *p1Pixel = 0;
-  } else {
-    // get p1 pixel!
-    if ( memmap->tia_write[TIA_WRITE_GRP1] &
-	 (1 << (7 - player1->pixBit))){
-      *hasP1 = true;
-      // could set the alpha?
-      *p1Pixel = p1_pixel;
-      
+  // player 0
+  if(ResetPlayer0) {
+    ResetPlayer0 = false;
+    player0->pixBit = 0;
+    player0->clkStart = column;
+
+  }
+  else {
+    if( player0->clkStart == column){
+      player0->pixBit = 0;
+      player0->clkStart = column;
     }
-    else {
+
+    if (player0->pixBit < 0 ) {
+      *hasP0 = false;
+      // could set the alpha?
+      *p0Pixel = 0;
+    } else {
+      // get p0 pixel!
+      if ( memmap->tia_write[TIA_WRITE_GRP0] &
+	   (1 << (7 - player0->pixBit))){
+	*hasP0 = true;
+	// could set the alpha?
+	*p0Pixel = p0_pixel;
+    
+      }
+      else {
+	*hasP0 = false;
+	// could set the alpha?
+	*p0Pixel = 0;
+      
+      }
+      player0->pixBit=player0->pixBit==7?-1:player0->pixBit+1;
+
+    }
+  }
+
+  // player 1
+  if(ResetPlayer1){
+      player1->pixBit = 0;
+      player1->clkStart = column;
+      ResetPlayer1 = false;
+
+  } else {
+    if(player1->clkStart == column){
+      player1->pixBit = 0;
+      player1->clkStart = column;
+    }
+  
+    if (player1->pixBit < 0 ) {
       *hasP1 = false;
       // could set the alpha?
       *p1Pixel = 0;
+    } else {
+      // get p1 pixel!
+      if ( memmap->tia_write[TIA_WRITE_GRP1] &
+	   (1 << (7 - player1->pixBit))){
+	*hasP1 = true;
+	// could set the alpha?
+	*p1Pixel = p1_pixel;
       
+      }
+      else {
+	*hasP1 = false;
+	// could set the alpha?
+	*p1Pixel = 0;
+      
+      }
+      player1->pixBit=player1->pixBit==7?-1:player1->pixBit+1;
     }
-    player1->pixBit=player1->pixBit==7?-1:player1->pixBit+1;
-
   }
 
   *hasM0 = false;
@@ -415,6 +458,14 @@ TiaPlayField(int row, int column){
   return 0;
 }
 
+int TiaClearHMotion(){
+  player0->hMotion = 0;
+  player1->hMotion = 0;
+
+  // and the other sprites
+  return 0;
+}
+
 int TiaReadRegs()
 {
   static bool vsync_on = false;
@@ -440,6 +491,12 @@ int TiaReadRegs()
       vblank_on = false;
       tia->row = VERTICAL_TIMING;
     }
+
+  player0->hMotion = 
+    TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP0]);
+  player1->hMotion =
+    TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP1]);
+
   return 0;
 }
 

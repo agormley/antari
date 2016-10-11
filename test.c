@@ -9,14 +9,45 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
-
+#include "defs.h"
 #define SIGN_MASK (1<<7)
 #define SETOVER(a,b,c) (((~(a ^ b))&(a ^ c)&SIGN_MASK)>1)
 
 
+int
+TiaConvertHmToInt(BYTE hm)
+{
+  int result = 0;
+  int sign = 0;
+
+  sign = hm & 0x80;
+  result = hm & 0x70;
+  result = result >> 4;
+
+  if(sign){
+    result++;
+
+    result = -result;
+
+  }
+
+  return result;
+}
+
+
+
 int main(int argc, char *argv[])
 {
+  int i;
+  BYTE hm = 0;
+  for(i = 0; i < 16; i++, hm += 0x10){
 
+  
+    printf("HorMotion: %#x, result: %d\n",
+	   hm, TiaConvertHmToInt(hm));
+
+  
+  }
   /*
 Inputs	Outputs		Example
 M7 	N7 	C6 	C7 	B	S7 	V	Borrow / Overflow	Hex	Unsigned	Signed
@@ -35,7 +66,7 @@ M7 	N7 	C6 	C7 	B	S7 	V	Borrow / Overflow	Hex	Unsigned	Signed
   unsigned short result = 0;
   unsigned char carry = 0;
   unsigned char overflow =0;
-  int i = 0;
+  i = 0;
 
   unsigned char a1[] = {80, 80, 80, 80, 208, 208, 208, 208};
   unsigned char a2[] = {240, 176, 112, 48, 240, 176, 112, 48};  
