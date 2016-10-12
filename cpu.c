@@ -318,23 +318,12 @@ CpuCycle(){
 
   case OPCODE_ASL_ABS:
 
-    arg1 = getZeroX(processor->regs.pc+1, &tmp);
+    arg1 = getAbsolute(processor->regs.pc+1, &addr);
 
     OPPRINTF("ASL $%.4x\n", addr);
 
-    // get byte
-    arg1 = MemoryGetByteAt(addr);
-
-    // operate on byte
-    result = arg1 << 1;
-
     // write back to memory
-    MemorySetByteAt(addr, (char)result);
-
-    // set signs
-    SETSIGN((char)result);
-    SETZERO((char)result);
-    SETCARRY(result);
+    MemorySetByteAt(addr, asl(arg1));
 
     // advance pc
     processor->regs.pc += 3;
@@ -342,26 +331,14 @@ CpuCycle(){
     break;
       
   case OPCODE_ASL_ABS_X:
-    // calculate addr
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
-    OPPRINTF("ASL $%.4x,X\n", addr);
-
     
-    addr += processor->regs.x;
-      
-    // get byte
-    arg1 = MemoryGetByteAt(addr);
+    arg1 = getAbsoluteX(processor->regs.pc+1, &addr);
 
-    // operate on byte
-    result = arg1 << 1;
-
+    OPPRINTF("ASL $%.4x,X\n", addr);
+    
     // write back to memory
-    MemorySetByteAt(addr, (char)result);
+    MemorySetByteAt(addr, asl(arg1));
 
-    // set signs
-    SETSIGN((char)result);
-    SETZERO((char)result);
-    SETCARRY(result);
 
     // advance pc
     processor->regs.pc += 3;
@@ -369,26 +346,11 @@ CpuCycle(){
     break;
   case OPCODE_BIT_ZERO:
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetByteAt(processor->regs.pc+1);
-      
+    arg2 = getZero(processor->regs.pc+1, &addr);
+    
     OPPRINTF("BIT $%.2x\n", addr);
 
-    arg2 = MemoryGetByteAt(addr);
-
-    
-    result = arg1 & arg2;
-    processor->regs.accumulator = (char)result;
-    SETZERO(result);
-
-    if(FLAG_OVER(arg2))
-      FLAG_OVER_SET(processor->regs.flags);
-    else 
-      FLAG_OVER_CLEAR(processor->regs.flags);
-
-    if(FLAG_NEG(arg2))
-      FLAG_NEG_SET(processor->regs.flags);
-    else 
-      FLAG_NEG_CLEAR(processor->regs.flags);
+    bit(arg1, arg2);
 
     processor->regs.pc += 2;
     cycles = 3;
@@ -396,26 +358,10 @@ CpuCycle(){
       
   case OPCODE_BIT_ABS:
     arg1 = processor->regs.accumulator;
-    
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    arg2 = getAbsolute(processor->regs.pc+1, &addr);
+    bit(arg1, arg2);
+
     OPPRINTF("BIT $%.4x\n", addr);
-
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
-
-    result = arg1 & arg2;
-    processor->regs.accumulator = (char)result;
-    SETZERO(result);
-
-    if(FLAG_OVER(arg2))
-      FLAG_OVER_SET(processor->regs.flags);
-    else 
-      FLAG_OVER_CLEAR(processor->regs.flags);
-
-    if(FLAG_NEG(arg2))
-      FLAG_NEG_SET(processor->regs.flags);
-    else 
-      FLAG_NEG_CLEAR(processor->regs.flags);
 
     processor->regs.pc += 3;
     cycles = 4;

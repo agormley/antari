@@ -7,3 +7,8 @@ and(BYTE arg1, BYTE arg2);
 BYTE
 asl(BYTE arg1);
 
+void
+bit(BYTE arg1, BYTE arg2);
+
+
+

@@ -38,3 +38,17 @@ asl(BYTE arg1){
 
   return (BYTE)result;
 }
+
+void
+bit(BYTE arg1, BYTE arg2)
+{
+  BYTE result = 0;
+  
+  result = arg1 & arg2;
+  
+  SETZERO(result);
+
+  processor->regs.flags |= (result & FLAG_OVER_MASK);
+  processor->regs.flags |= (result & FLAG_NEG_MASK);
+
+}
