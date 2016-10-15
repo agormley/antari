@@ -10,5 +10,5 @@ asl(BYTE arg1);
 void
 bit(BYTE arg1, BYTE arg2);
 
-
-
+void
+cmp(BYTE arg1, BYTE arg2);

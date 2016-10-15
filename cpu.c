@@ -512,138 +512,84 @@ CpuCycle(){
     break;
   case OPCODE_CMP_IMM:
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = getImmediate(processor->regs.pc+1);
+
+    cmp(arg1, arg2);
 
     OPPRINTF("CMP #$%.2x\n", arg2);
 
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 2;
 
     break;
   case OPCODE_CMP_ZERO:
     arg1 = processor->regs.accumulator;
-    addr = MemoryGetByteAt(processor->regs.pc+1);
+    arg2 = getZero(processor->regs.pc+1, &addr);
     OPPRINTF("CMP $%.2x\n", addr);
-    arg2 = MemoryGetByteAt(addr);
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
+
+    cmp(arg1, arg2);
     processor->regs.pc += 2;
     cycles = 3;
 	    
     break;
   case OPCODE_CMP_ZERO_X:
-    tmp = MemoryGetByteAt(processor->regs.pc+1);
+    arg1 = processor->regs.accumulator;
+    arg2 = getZeroX(processor->regs.pc+1, &addr);
     OPPRINTF("CMP $%.2x,X\n", tmp);
 
-    tmp += processor->regs.x;
-    tmp &= 0xFF;
-    arg2 = MemoryGetByteAt(tmp);
-    arg1 = processor->regs.accumulator;
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
+    cmp(arg1, arg2);
+
     processor->regs.pc += 2;
     cycles = 4;
 
     break;
   case OPCODE_CMP_ABS:
     arg1 = processor->regs.accumulator;
+    arg2 = getAbsolute(processor->regs.pc+1, &addr);
 
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
+
     OPPRINTF("CMP $%.4x\n", addr);
 
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
-    
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 3;
     cycles = 4;
 
     break;
   case OPCODE_CMP_ABS_X:
     arg1 = processor->regs.accumulator;
+    arg2 = getAbsoluteX(processor->regs.pc+1, &addr);
 
-    // calculate address
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
     OPPRINTF("CMP $%.4x,X\n", addr);
 
-    tmp = processor->regs.x;
-
-    // get byte
-    arg2 = MemoryGetByteAt(tmp + addr);
-
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 3;
     cycles = 4;
     
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + processor->regs.x) > 0x100)
       cycles++;
 
     break;
   case OPCODE_CMP_ABS_Y:
     arg1 = processor->regs.accumulator;
+    arg2 = getAbsoluteY(processor->regs.pc+1, &addr);
 
-    addr = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
     OPPRINTF("CMP $%.4x,Y\n", addr);
 
-    tmp = processor->regs.y;
-
-    // get byte
-    arg2 = MemoryGetByteAt(addr + tmp);
-
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 3;
     cycles = 4;
 
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + processor->regs.y) > 0x100)
       cycles++;
     break;
 
   case OPCODE_CMP_IND_X:
     arg1 = processor->regs.accumulator;
+    arg2 = getIndirectX(processor->regs.pc+1, &addr);
 
-    addr = MemoryGetByteAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
     OPPRINTF("CMP ($.2%x,X)\n", addr);
 
-    addr += processor->regs.x;
-    addr = MemoryGetTwoBytesAt(addr);
-    
-    arg2 = MemoryGetByteAt(addr);
-
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 6;
 
@@ -651,138 +597,89 @@ CpuCycle(){
      
   case OPCODE_CMP_IND_Y:
     arg1 = processor->regs.accumulator;
+    arg2 = getIndirectY(processor->regs.pc+1, &addr);
 
-    addr = MemoryGetByteAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
     OPPRINTF("CMP ($.2%x),Y\n", addr);
 
-    addr = MemoryGetTwoBytesAt(addr);
-    tmp = processor->regs.y;
-    
-    arg2 = MemoryGetByteAt(addr + tmp);
-
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 5;
 
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + processor->regs.y) > 0x100)
       cycles++;
     break;
 
   case OPCODE_CPX_IMM:
     arg1 = processor->regs.x;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = getImmediate(processor->regs.pc+1);
+
+    cmp(arg1, arg2);
 
     OPPRINTF("CPX #$%.2x\n", arg2);
 
-    result = arg1 - arg2;
-    OPPRINTF("\targ1 %#x, arg2 %#x, result %#x\n", arg1, arg2, result);
-
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 2;
 
     break;
   case OPCODE_CPX_ZERO:
     arg1 = processor->regs.x;
-    addr = MemoryGetByteAt(processor->regs.pc+1);
-      
+    arg2 = getZero(processor->regs.pc+1, &addr);
     OPPRINTF("CPX $%.2x\n", addr);
 
-    arg2 = MemoryGetByteAt(addr);
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
+    cmp(arg1, arg2);
     processor->regs.pc += 2;
     cycles = 3;
-
+	    
     break;
-      
+
   case OPCODE_CPX_ABS:
     arg1 = processor->regs.x;
+    arg2 = getAbsolute(processor->regs.pc+1, &addr);
 
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
+
     OPPRINTF("CPX $%.4x\n", addr);
-    
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
 
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 3;
     cycles = 4;
 
     break;
 
+
   case OPCODE_CPY_IMM:
     arg1 = processor->regs.y;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = getImmediate(processor->regs.pc+1);
+
+    cmp(arg1, arg2);
+
     OPPRINTF("CPY #$%.2x\n", arg2);
 
-    
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 2;
     cycles = 2;
 
     break;
-
-  case OPCODE_CPY_ZERO:
+ case OPCODE_CPY_ZERO:
     arg1 = processor->regs.y;
-    addr = MemoryGetByteAt(processor->regs.pc+1);
-      
-    OPPRINTF("CPY $%.2x\n", addr);
+    arg2 = getZero(processor->regs.pc+1, &addr);
+    OPPRINTF("CMP $%.2x\n", addr);
 
-    arg2 = MemoryGetByteAt(addr);
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
+    cmp(arg1, arg2);
     processor->regs.pc += 2;
-    cycles = 2;
-
+    cycles = 3;
+	    
     break;
   case OPCODE_CPY_ABS:
     arg1 = processor->regs.y;
+    arg2 = getAbsolute(processor->regs.pc+1, &addr);
 
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    cmp(arg1, arg2);
+
     OPPRINTF("CPY $%.4x\n", addr);
-    
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
 
-    result = arg1 - arg2;
-    result==0?FLAG_NEG_CLEAR(processor->regs.flags):
-      SETSIGN(arg1);
-    SETZERO(result);
-    SETOVER(arg1, arg2, result);
-    SETCARRY(result);
     processor->regs.pc += 3;
-    cycles = 2;
+    cycles = 4;
 
     break;
-      
   case OPCODE_DEC_ZERO:
     arg1 = MemoryGetByteAt(processor->regs.pc+1);
     arg2 = MemoryGetByteAt(arg1);

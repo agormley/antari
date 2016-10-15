@@ -52,3 +52,26 @@ bit(BYTE arg1, BYTE arg2)
   processor->regs.flags |= (result & FLAG_NEG_MASK);
 
 }
+
+void
+cmp(BYTE arg1, BYTE arg2)
+{
+  BYTE result = 0;
+  
+  
+  // Get its twos compliment
+  // Negate the bits
+  arg2 = ~arg2;
+  arg2++;
+
+  // Subraction of two's comp is really just an add.
+  result = arg1 + arg2;
+
+  SETSIGN(result);
+  SETZERO(result);
+
+  if(arg1<arg2)
+    FLAG_CARRY_CLEAR(processor->regs.flags);
+  else
+    FLAG_CARRY_SET(processor->regs.flags);
+}
