@@ -12,3 +12,6 @@ bit(BYTE arg1, BYTE arg2);
 
 void
 cmp(BYTE arg1, BYTE arg2);
+
+void
+dec(BYTE val, ushort addr);

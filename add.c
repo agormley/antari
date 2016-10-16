@@ -75,3 +75,27 @@ cmp(BYTE arg1, BYTE arg2)
   else
     FLAG_CARRY_SET(processor->regs.flags);
 }
+
+void
+dec(BYTE val, ushort addr)
+{
+  
+  val--;
+  MemorySetByteAt(addr, val);
+  SETSIGN(val);
+  SETZERO(val);
+}
+
+BYTE
+eor(BYTE arg1, BYTE arg2)
+{
+  BYTE result = 0;
+
+  result = arg1 ^ arg2;
+
+  SETSIGN(result);
+  SETZERO(result);
+
+  return result;
+}
+

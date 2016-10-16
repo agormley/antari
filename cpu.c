@@ -681,66 +681,47 @@ CpuCycle(){
 
     break;
   case OPCODE_DEC_ZERO:
-    arg1 = MemoryGetByteAt(processor->regs.pc+1);
-    arg2 = MemoryGetByteAt(arg1);
-      
-    OPPRINTF("DEC $%.2x\n", arg1);
+    arg2 = getZero(processor->regs.pc+1, &addr);
+ 
+    OPPRINTF("DEC $%.2x\n", addr);
+
+    dec(arg2, arg1);
     
-    arg2--;
-    MemorySetByteAt(arg1, arg2);
-    SETSIGN(arg2);
-    SETZERO(arg2);
     processor->regs.pc += 2;
     cycles = 5;
 
     break;
      
   case OPCODE_DEC_ZERO_X:
-    arg1 = MemoryGetByteAt(processor->regs.pc+1);
+    arg2 = getZeroX(processor->regs.pc+1, &addr);
+ 
+    dec(arg2, addr);
+
     OPPRINTF("DEC $%.2x,X\n", arg1);
 
-    arg1 += processor->regs.x;
-    arg2 = MemoryGetByteAt(arg1);
-    arg2--;
-    MemorySetByteAt(arg1, arg2);
-    SETSIGN(arg2);
-    SETZERO(arg2);
     processor->regs.pc += 2;
     cycles = 6;
 
     break;
 
   case OPCODE_DEC_ABS:
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    arg2 = getAbsolute(processor->regs.pc+1, &addr);
+ 
+    dec(arg2, addr);
     OPPRINTF("DEC $%.4x\n", addr);
 
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
-   
-    arg2--;
-    MemorySetByteAt(addr, arg2);
-    SETSIGN(arg2);
-    SETZERO(arg2);
     processor->regs.pc += 3;
     cycles = 6;
 
     break;
 
   case OPCODE_DEC_ABS_X:
+    arg2 = getAbsoluteX(processor->regs.pc+1, &addr);
+ 
+    dec(arg2, addr);
 
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
     OPPRINTF("DEC $%.4x,X\n", addr);
 
-    tmp = processor->regs.x;
-
-    // get byte
-    arg2 = MemoryGetByteAt(tmp + addr);
-
-    arg2--;
-    
-    MemorySetByteAt(addr, arg2);
-    SETSIGN(arg2);
-    SETZERO(arg2);
     processor->regs.pc += 3;
     cycles = 7;
 
@@ -748,13 +729,11 @@ CpuCycle(){
 
   case OPCODE_EOR_IMM:
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(processor->regs.pc+1 );
+    arg2 = getImmediate(processor->regs.pc+1 );
+    
+    processor->regs.accumulator = eor(arg1, arg2);
     OPPRINTF("EOR #$%.2x\n", arg2);
 
-    result = arg1 ^ arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 2;
 
@@ -762,31 +741,23 @@ CpuCycle(){
 
   case OPCODE_EOR_ZERO:
     arg1 = processor->regs.accumulator;
-    tmp = MemoryGetByteAt(processor->regs.pc+1 );
-    OPPRINTF("EOR $%.2x\n", tmp);
+    arg2 = getZero(processor->regs.pc+1, &addr );
+    
+    processor->regs.accumulator = eor(arg1, arg2);
+    OPPRINTF("EOR $%.2x\n", addr);
 
-    arg2 = MemoryGetByteAt(tmp);
-    result = arg1 ^ arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 2;
     cycles = 3;
 
     break;
 
   case OPCODE_EOR_ZERO_X:
-    tmp = MemoryGetByteAt(processor->regs.pc+1);
-    OPPRINTF("EOR $%.2x,X\n", tmp);
-
-    tmp += processor->regs.x;
-    tmp &= 0xFF;
     arg1 = processor->regs.accumulator;
-    arg2 = MemoryGetByteAt(tmp);
-    result = arg1 ^ arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    arg2 = getZeroX(processor->regs.pc+1, &addr );
+    
+    processor->regs.accumulator = eor(arg1, arg2);
+    OPPRINTF("EOR $%.2x,X\n", addr);
+
     processor->regs.pc += 2;
     cycles = 4;
 
@@ -794,17 +765,11 @@ CpuCycle(){
       
   case OPCODE_EOR_ABS:
     arg1 = processor->regs.accumulator;
-
-    addr  = MemoryGetTwoBytesAt(processor->regs.pc+1);
+    arg2 = getAbsolute(processor->regs.pc+1, &addr );
+    
+    processor->regs.accumulator = eor(arg1, arg2);
     OPPRINTF("EOR $%.4x\n", addr);
  
-    // get byte
-    arg2 = MemoryGetByteAt(addr);
-    
-    result = arg1 ^ arg2;
-    processor->regs.accumulator = result;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     processor->regs.pc += 3;
     cycles = 4;
 

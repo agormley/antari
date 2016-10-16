@@ -484,12 +484,11 @@ int TiaReadRegs()
   if(memmap->tia_write[TIA_WRITE_VBLANK] & (1<<1))
     {
       //printf("VBLANK\n");
-      tia->row = VERTICAL_SYNC;
     }
   else if (vblank_on)
     {
       vblank_on = false;
-      tia->row = VERTICAL_TIMING;
+      tia->row = 0;
     }
 
   player0->hMotion = 
