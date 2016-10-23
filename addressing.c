@@ -49,6 +49,13 @@ getAbsoluteY(ushort addr, ushort* mid)
 }
 
 BYTE
+getIndirect(ushort addr, ushort* mid)
+{
+  *mid = MemoryGetTwoBytesAt(MemoryGetTwoBytesAt(addr));
+  return MemoryGetByteAt(*mid);
+}
+
+BYTE
 getIndirectX(ushort addr, ushort* mid)
 {
   *mid = MemoryGetByteAt(addr);

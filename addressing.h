@@ -22,3 +22,5 @@ getIndirectX(ushort addr, ushort* mid);
 BYTE
 getIndirectY(ushort addr, ushort* mid);
 
+BYTE
+getIndirect(ushort addr, ushort* mid);

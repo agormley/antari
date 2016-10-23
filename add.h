@@ -15,3 +15,9 @@ cmp(BYTE arg1, BYTE arg2);
 
 void
 dec(BYTE val, ushort addr);
+
+BYTE
+eor(BYTE arg1, BYTE arg2);
+
+void
+inc(BYTE val, ushort addr);

@@ -99,3 +99,11 @@ eor(BYTE arg1, BYTE arg2)
   return result;
 }
 
+void
+inc(BYTE val, ushort addr)
+{
+  val++;
+  MemorySetByteAt(addr, val);
+  SETSIGN(val);
+  SETZERO(val);
+}

@@ -241,6 +241,15 @@
 #define MEMORY_MASK 0x1FFF
 #define STACK_MASK 0x100
 
+
+#define REG_A processor->regs.accumulator
+#define REG_X processor->regs.x
+#define REG_Y processor->regs.y
+#define REG_SP processor->regs.sp
+#define REG_PC processor->regs.pc
+#define REG_ST processor->regs.flags
+
+
 typedef struct _Cpu{
   struct{
     unsigned char accumulator;
