@@ -107,3 +107,27 @@ inc(BYTE val, ushort addr)
   SETSIGN(val);
   SETZERO(val);
 }
+
+void
+lda(BYTE val)
+{
+  REG_A = val;
+  SETSIGN(val);
+  SETZERO(val);
+}
+
+void
+ldx(BYTE val)
+{
+  REG_X = val;
+  SETSIGN(val);
+  SETZERO(val);
+}
+
+void
+ldy(BYTE val)
+{
+  REG_Y = val;
+  SETSIGN(val);
+  SETZERO(val);
+}

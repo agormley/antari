@@ -24,6 +24,17 @@ getZeroX(ushort addr, ushort* mid){
 }
 
 BYTE
+getZeroY(ushort addr, ushort* mid){
+  ushort final_addr = 0;
+  
+  final_addr = *mid = MemoryGetByteAt( addr );
+  final_addr += REG_Y;
+  final_addr &= 0xFF;
+    
+  return MemoryGetByteAt(final_addr);
+}
+
+BYTE
 getAbsolute(ushort addr, ushort* mid)
 {
     *mid  = MemoryGetTwoBytesAt(addr);

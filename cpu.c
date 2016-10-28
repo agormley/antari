@@ -5,8 +5,8 @@ char StackPopByte(void){
 }
 ushort StackPopShort(void){
   ushort bytes = 0;
- ((char*)&bytes)[1] = memmap->memory[( STACK_MASK | processor->regs.sp++)];
  ((char*)&bytes)[0] = memmap->memory[( STACK_MASK | processor->regs.sp++)];
+ ((char*)&bytes)[1] = memmap->memory[( STACK_MASK | processor->regs.sp++)];
  return bytes;
 }
 
@@ -15,8 +15,8 @@ void StackPushByte(unsigned char byte){
   memmap->memory[( STACK_MASK | --processor->regs.sp)] = byte;
 }
 void StackPushShort(ushort bytes){
-  memmap->memory[( STACK_MASK | --processor->regs.sp)] = ((char*)&bytes)[0];
   memmap->memory[( STACK_MASK | --processor->regs.sp)] = ((char*)&bytes)[1];
+  memmap->memory[( STACK_MASK | --processor->regs.sp)] = ((char*)&bytes)[0];
 }
 
 #define OPPRINTF(...) printf(__VA_ARGS__)
@@ -954,7 +954,7 @@ CpuCycle(){
 
     break;
   case OPCODE_JSR_ABS:
-    addr = MemoryGetTwoBytesAt(REG_PC+1);
+    getAbsolute(REG_PC+1, &addr);
     OPPRINTF("JSR $%.4x\n", addr);
 
     StackPushShort(REG_PC + 2);
@@ -964,241 +964,190 @@ CpuCycle(){
 	    
     break;
   case OPCODE_LDA_IMM:
-    arg2 = MemoryGetByteAt(REG_PC+1 );
+    arg2 = getImmediate(REG_PC+1);
+
+    lda(arg2);
     OPPRINTF("LDA #$%.2x\n", arg2);
 
-    processor->regs.accumulator = arg2;
     REG_PC += 2;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     cycles = 2;
 
     break;
   case OPCODE_LDA_ZERO:
-    tmp = MemoryGetByteAt(REG_PC+1 );
+    arg2 = getZero(REG_PC+1, &addr);
 
-    OPPRINTF("LDA $%.2x\n", tmp);
+    OPPRINTF("LDA $%.2x\n", addr);
 
-    processor->regs.accumulator = MemoryGetByteAt(tmp);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    lda(arg2);
+
     REG_PC += 2;
     cycles = 3;
 
     break;
   case OPCODE_LDA_ZERO_X:
-    tmp = MemoryGetByteAt(REG_PC+1);
-    OPPRINTF("LDA $%.2x,X\n", tmp);
-
-    tmp += processor->regs.x;
-    tmp &= 0xFF;
-    processor->regs.accumulator = MemoryGetByteAt(tmp);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    arg2 = getZeroX(REG_PC+1, &addr);
+    OPPRINTF("LDA $%.2x,X\n", addr);
+    lda(arg2);
     REG_PC += 2;
     cycles = 4;
 
     break;
   case OPCODE_LDA_ABS:
-    tmp = MemoryGetTwoBytesAt(REG_PC+1);
-    OPPRINTF("LDA $%.4x\n", tmp);
-
-    processor->regs.accumulator = MemoryGetByteAt(tmp );
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    REG_PC = REG_PC+3;
+    arg2 = getAbsolute(REG_PC+1, &addr);
+    OPPRINTF("LDA $%.4x\n", addr);
+    lda(arg2);
+    REG_PC += 3;
     cycles = 4;
 
     break;
   case OPCODE_LDA_ABS_X:
-    addr = MemoryGetTwoBytesAt(REG_PC+1);
+    arg2 = getAbsoluteX(REG_PC+1, &addr);
     OPPRINTF("LDA $%.4x,X\n", addr);
+    lda(arg2);
 
-    //    addr += processor->regs.x;
-    tmp = processor->regs.x;
-    processor->regs.accumulator = MemoryGetByteAt( addr + tmp );
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
-    REG_PC = REG_PC+3;
+    REG_PC += 3;
     cycles = 4;
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + REG_X) > 0x100)
       cycles++;
     break;
   case OPCODE_LDA_ABS_Y:
-    addr = MemoryGetTwoBytesAt(REG_PC+1);
+    arg2 = getAbsoluteY(REG_PC+1, &addr);
     OPPRINTF("LDA $%.4x,Y\n", addr);
 
-    tmp = processor->regs.y;
-    processor->regs.accumulator = MemoryGetByteAt(tmp + addr);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    lda(arg2);
     REG_PC = REG_PC+3;
     cycles = 4;
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + REG_Y) > 0x100)
       cycles++;
 
     break;
   case OPCODE_LDA_IND_X:
-    tmp = MemoryGetByteAt(REG_PC+1 );
-    OPPRINTF("LDA ($.2%x,X)\n", tmp);
+    arg2 = getIndirectX(REG_PC+1, &addr);
 
-    tmp += processor->regs.x;
-    processor->regs.accumulator = MemoryGetByteAt(MemoryGetTwoBytesAt(tmp) );
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    OPPRINTF("LDA ($.2%x,X)\n", addr);
+
+    lda(arg2);
+
     REG_PC += 2;
     cycles = 6;
 
     break;
   case OPCODE_LDA_IND_Y:
-    addr =  MemoryGetByteAt(REG_PC+1);
+    arg2 = getIndirectY(REG_PC+1, &addr);
+
     OPPRINTF("LDA ($.2%x),Y\n", addr);
 
-    addr = MemoryGetTwoBytesAt(addr);
-    tmp  = processor->regs.y;
-    processor->regs.accumulator = MemoryGetByteAt(tmp + addr);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    lda(arg2);
     REG_PC += 2;
     cycles = 5;
 
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + REG_Y) > 0x100)
       cycles++;
 
     break;
   case OPCODE_LDX_IMM:
-    arg2 = MemoryGetByteAt(REG_PC+1);
-    MemoryGetByteAt(REG_PC+1 );
-    processor->regs.x = arg2;
-    OPPRINTF("LDX #$%.2x\n", arg2);
 
-    //    OPPRINTF("x: %#x\n", processor->regs.x);
-    SETSIGN(processor->regs.x);
-    SETZERO(processor->regs.x);
+    arg2 = getImmediate(REG_PC+1);
+
+    OPPRINTF("LDX #$%.2x\n", arg2);
+    ldx(arg2);
     REG_PC += 2;
     cycles = 2;
 
     break;
   case OPCODE_LDX_ZERO:
-    tmp = MemoryGetByteAt(REG_PC+1 );
-    OPPRINTF("LDX $%.2x\n", tmp);
-    processor->regs.x = MemoryGetByteAt(tmp);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    arg2 = getZero(REG_PC+1, &addr);
+
+    OPPRINTF("LDX $%.2x\n", addr);
+    ldx(arg2);
     REG_PC += 2;
     cycles = 3;
 
     break;
 
   case OPCODE_LDX_ZERO_Y:
-    tmp = MemoryGetByteAt(REG_PC+1);
-    OPPRINTF("LDX $%.2x,Y\n", tmp);
-
-    tmp += processor->regs.y;
-    processor->regs.x = MemoryGetByteAt(tmp);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    arg2 = getZeroY(REG_PC+1, &addr);
+    
+    OPPRINTF("LDX $%.2x,Y\n", addr);
+    ldx(arg2);
     REG_PC += 2;
     cycles = 4;
 
     break;
 
   case OPCODE_LDX_ABS:
-    tmp = MemoryGetTwoBytesAt(REG_PC+1);
+    arg2 = getAbsolute(REG_PC+1, &addr);
+	
     OPPRINTF("LDX $%.4x\n", tmp);
+    ldx(arg2);
 
-    processor->regs.x = MemoryGetByteAt(tmp );
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     REG_PC = REG_PC+3;
     cycles = 4;
 
     break;
       
   case OPCODE_LDX_ABS_Y:
+    arg2 = getAbsoluteY(REG_PC+1, &addr);
 
-    addr = MemoryGetTwoBytesAt(REG_PC+1);
     OPPRINTF("LDX $%.4x,Y\n", addr);
+    ldx(arg2);
 
-    tmp = processor->regs.y;
-
-    // get byte
-    arg2 = MemoryGetByteAt(addr + tmp);
-
-    processor->regs.x = arg2;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     REG_PC = REG_PC+3;
     cycles = 4;
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + REG_Y) > 0x100)
       cycles++;
 
     break;
   case OPCODE_LDY_IMM:
-    arg2 = MemoryGetByteAt(REG_PC+1);
+    arg2 = getImmediate(REG_PC+1);
+
     OPPRINTF("LDY #$%.2x\n", arg2);
-    
-    processor->regs.y = arg2;
-    SETSIGN(processor->regs.y);
-    SETZERO(processor->regs.y);
+
+    ldy(arg2);
+
     REG_PC += 2;
     cycles = 2;
 
     break;
   case OPCODE_LDY_ZERO:
-    tmp = MemoryGetByteAt(REG_PC+1 );
+    arg2 = getZero(REG_PC+1, &addr);
 
-    OPPRINTF("LDY $%.2x\n", tmp);
-
-    processor->regs.y = MemoryGetByteAt(tmp);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    OPPRINTF("LDY $%.2x\n", addr);
+    ldy(arg2);
     REG_PC += 2;
     cycles = 3;
 
     break;
 
   case OPCODE_LDY_ZERO_X:
-    tmp = MemoryGetByteAt(REG_PC+1);
-    OPPRINTF("LDY $%.2x,X\n", tmp);
-	
-    tmp += processor->regs.x;
-    tmp &= 0xFF;
-    processor->regs.y = MemoryGetByteAt(tmp);
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    arg2 = getZeroX(REG_PC+1, &addr);
+
+    OPPRINTF("LDY $%.2x,X\n", addr);
+    ldy(arg2);
     REG_PC += 2;
     cycles = 4;
 
     break;
 
   case OPCODE_LDY_ABS:
-    tmp = MemoryGetTwoBytesAt(REG_PC+1);
-    OPPRINTF("LDY $%.4x\n", tmp);
+    arg2 = getAbsolute(REG_PC+1, &addr);
+    OPPRINTF("LDY $%.4x\n", addr);
 
-    processor->regs.y = MemoryGetByteAt(tmp );
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
+    ldy(arg2);
+
     REG_PC = REG_PC+3;
     cycles = 4;
 
     break;
   case OPCODE_LDY_ABS_X:
-    // calculate address
-    addr  = MemoryGetTwoBytesAt(REG_PC+1);
+    arg2 = getAbsoluteX(REG_PC+1, &addr);
+
     OPPRINTF("LDY $%.4x,X\n", addr);
+    ldy(arg2);
 
-    tmp = processor->regs.x;
-
-    // get byte
-    arg2 = MemoryGetByteAt(tmp + addr);
-
-    processor->regs.y = arg2;
-    SETSIGN(processor->regs.accumulator);
-    SETZERO(processor->regs.accumulator);
     REG_PC = REG_PC+3;
     cycles = 4;
-    if (((addr  & 0xFF) + tmp) > 0x100)
+    if (((addr  & 0xFF) + REG_X) > 0x100)
       cycles++;
 
     break;

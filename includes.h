@@ -23,5 +23,5 @@
 #include "globals.h"
 #include "clock.h"
 #include "color.h"
-#include "add.h"
+#include "ops.h"
 #include "addressing.h"

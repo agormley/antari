@@ -8,6 +8,9 @@ BYTE
 getZeroX(ushort addr, ushort* mid);
 
 BYTE
+getZeroY(ushort addr, ushort* mid);
+
+BYTE
 getAbsolute(ushort addr, ushort* mid);
 
 BYTE

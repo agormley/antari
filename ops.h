@@ -21,3 +21,13 @@ eor(BYTE arg1, BYTE arg2);
 
 void
 inc(BYTE val, ushort addr);
+
+
+void
+lda(BYTE val);
+
+void
+ldx(BYTE val);
+
+void
+ldy(BYTE val);
