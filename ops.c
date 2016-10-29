@@ -206,3 +206,53 @@ ror(BYTE *val)
   else
     FLAG_CARRY_CLEAR(REG_ST);
 }
+
+BYTE
+sbc(BYTE arg1, BYTE arg2, BYTE carry)
+{
+  ushort result = 0;
+  BYTE tmp = 0; 
+  assert(!FLAG_DECIMAL(processor->regs.flags)); 
+
+  // Get its twos compliment
+  // Negate the bits
+  arg2 = ~arg2;
+
+  // Add one unless (not) carry indicates that borrow occurred
+  // thus the difference will be one less.
+  if (carry){
+    tmp = 1;
+  }
+  
+  result = arg1 + arg2 + tmp;
+
+  SETSIGN((BYTE)result);
+  SETZERO((BYTE)result);
+  SETOVER(arg1, arg2, result);
+
+  // Carry is reverse borrow.
+  if( result > 255 )
+    FLAG_CARRY_CLEAR(REG_ST);
+  else
+    FLAG_CARRY_SET(REG_ST);
+  
+  return (BYTE)result;
+}
+
+void
+sta(ushort addr)
+{
+  MemorySetByteAt(addr, REG_A);
+}
+
+void
+stx(ushort addr)
+{
+  MemorySetByteAt(addr, REG_X);
+}
+
+void
+sty(ushort addr)
+{
+  MemorySetByteAt(addr, REG_Y);
+}

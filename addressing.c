@@ -13,24 +13,28 @@ getZero(ushort addr, ushort* mid){
 }
 
 BYTE
-getZeroX(ushort addr, ushort* mid){
+getZeroX(ushort pc, ushort* mid, ushort* addr){
   ushort final_addr = 0;
   
-  final_addr = *mid = MemoryGetByteAt( addr );
+  final_addr = *mid = MemoryGetByteAt( pc );
   final_addr += processor->regs.x;
   final_addr &= 0xFF;
-    
+  if(addr)
+    *addr = final_addr;
+  
   return MemoryGetByteAt(final_addr);
 }
 
 BYTE
-getZeroY(ushort addr, ushort* mid){
+getZeroY(ushort pc, ushort* mid, ushort* addr)
+{
   ushort final_addr = 0;
   
-  final_addr = *mid = MemoryGetByteAt( addr );
+  final_addr = *mid = MemoryGetByteAt( pc );
   final_addr += REG_Y;
   final_addr &= 0xFF;
-    
+  if(addr)
+    *addr = final_addr;
   return MemoryGetByteAt(final_addr);
 }
 
@@ -42,21 +46,24 @@ getAbsolute(ushort addr, ushort* mid)
 }
 
 BYTE
-getAbsoluteX(ushort addr, ushort* mid)
+getAbsoluteX(ushort addr, ushort* mid, ushort *write_addr)
 {
   *mid  = MemoryGetTwoBytesAt(addr);
-    
+  if(write_addr)
+    *write_addr = processor->regs.x + *mid;
   // get byte
   return MemoryGetByteAt(processor->regs.x + *mid);
 }
 
 BYTE
-getAbsoluteY(ushort addr, ushort* mid)
+getAbsoluteY(ushort addr, ushort* mid, ushort *write_addr)
 {
   *mid  = MemoryGetTwoBytesAt(addr);
+  if(write_addr)
+    *write_addr = REG_Y + *mid;
   
   // get byte
-  return MemoryGetByteAt(processor->regs.y + *mid);
+  return MemoryGetByteAt(REG_Y + *mid);
 }
 
 BYTE
@@ -67,19 +74,22 @@ getIndirect(ushort addr, ushort* mid)
 }
 
 BYTE
-getIndirectX(ushort addr, ushort* mid)
+getIndirectX(ushort addr, ushort* mid, ushort *write_addr)
 {
   *mid = MemoryGetByteAt(addr);
-    
-  return MemoryGetByteAt(MemoryGetTwoBytesAt(*mid +
-					     processor->regs.x));
+  if(write_addr)
+    *write_addr = MemoryGetTwoBytesAt(*mid + REG_X); 
+  return MemoryGetByteAt(MemoryGetTwoBytesAt(*mid + REG_X));
 }
 
 BYTE
-getIndirectY(ushort addr, ushort* mid)
+getIndirectY(ushort addr, ushort* mid, ushort *write_addr)
 {
  
   *mid = MemoryGetTwoBytesAt(MemoryGetByteAt(addr));
-  
-  return MemoryGetByteAt(processor->regs.y + *mid);
+
+  if(write_addr)
+    *write_addr = *mid + REG_Y; 
+
+  return MemoryGetByteAt(REG_Y + *mid);
 }

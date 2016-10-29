@@ -5,25 +5,25 @@ BYTE
 getZero(ushort addr, ushort* mid);
 
 BYTE
-getZeroX(ushort addr, ushort* mid);
+getZeroX(ushort pc, ushort* mid, ushort* addr);
 
 BYTE
-getZeroY(ushort addr, ushort* mid);
+getZeroY(ushort pc, ushort* mid, ushort* addr);
 
 BYTE
 getAbsolute(ushort addr, ushort* mid);
 
 BYTE
-getAbsoluteX(ushort addr, ushort* mid);
+getAbsoluteX(ushort addr, ushort* mid, ushort *write_addr);
 
 BYTE
-getAbsoluteY(ushort addr, ushort* mid);
+getAbsoluteY(ushort addr, ushort* mid, ushort *write_addr);
 
 BYTE
-getIndirectX(ushort addr, ushort* mid);
+getIndirectX(ushort addr, ushort* mid, ushort *write_addr);
 
 BYTE
-getIndirectY(ushort addr, ushort* mid);
+getIndirectY(ushort addr, ushort* mid, ushort *write_addr);
 
 BYTE
 getIndirect(ushort addr, ushort* mid);

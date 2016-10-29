@@ -22,7 +22,6 @@ eor(BYTE arg1, BYTE arg2);
 void
 inc(BYTE val, ushort addr);
 
-
 void
 lda(BYTE val);
 
@@ -43,3 +42,15 @@ rol(BYTE *val);
 
 void
 ror(BYTE *val);
+
+BYTE
+sbc(BYTE arg1, BYTE arg2, BYTE carry);
+
+void
+sta(ushort addr);
+
+void
+stx(ushort addr);
+
+void
+sty(ushort addr);
