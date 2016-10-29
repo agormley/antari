@@ -31,3 +31,15 @@ ldx(BYTE val);
 
 void
 ldy(BYTE val);
+
+void
+lsr(BYTE *val);
+
+void
+ora(BYTE val);
+
+void
+rol(BYTE *val);
+
+void
+ror(BYTE *val);

@@ -131,3 +131,78 @@ ldy(BYTE val)
   SETSIGN(val);
   SETZERO(val);
 }
+
+void
+lsr(BYTE *val)
+{
+  
+ *val = 0x7F & (*val >> 1);
+ SETSIGN(*val);
+ SETZERO(*val);
+ if(*val & 0xFE)
+   FLAG_CARRY_SET(REG_ST);
+ else
+   FLAG_CARRY_CLEAR(REG_ST);
+
+}
+
+void
+ora(BYTE val)
+{
+  REG_A |= val;
+
+  SETSIGN(REG_A);
+  SETZERO(REG_A);
+    
+}
+
+void
+rol(BYTE *val)
+{
+  ushort result = 0;
+
+  result = *val << 1;
+
+  // Set lowest bit according to carry flag
+  if(FLAG_CARRY(REG_ST))
+    result |= 0x1;
+  else
+    result &= 0x1FE;
+
+  // write back value
+  *val = (char)result;
+
+  // set flags
+  SETSIGN(*val);
+  SETZERO(*val);
+  SETCARRY(result);
+
+}
+
+void
+ror(BYTE *val)
+{
+  ushort result = 0;
+  BYTE carry = *val & 0xFE;
+
+  // Calculate new value
+  result = *val >> 1;
+  
+  // Set highest bit according to carry flag
+  if(FLAG_CARRY(REG_ST))
+    result |= 0x80;
+  else
+    result &= 0x7F;
+  
+  // write back value
+  *val = (char)result;
+
+  // set flags
+  SETSIGN(*val);
+  SETZERO(*val);
+  
+  if(carry)
+    FLAG_CARRY_SET(REG_ST);
+  else
+    FLAG_CARRY_CLEAR(REG_ST);
+}
