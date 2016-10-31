@@ -50,8 +50,8 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   
   ushort addr1 = (addr & MEMORY_MASK);
   
-  if (addr1 >= TIA_WRITE_PF0  && addr <= TIA_WRITE_PF2)
-    LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
+  //  if (addr1 >= TIA_WRITE_PF0  && addr <= TIA_WRITE_PF2)
+  LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
 
   // check strobe registers
   // please put vars inside a struct, preferabl tia

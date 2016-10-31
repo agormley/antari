@@ -1,6 +1,9 @@
-#include "includes.h"
+/***
+ * TIA is the Television Interface Adapter which is the 
+ * graphics and sound processor. 
+ */
 
-//Uint32 framebuffer[FRAME_CLOCK_COUNTS][FRAME_LINES];
+#include "includes.h"
 
 Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
@@ -59,15 +62,22 @@ TiaParsePlayField()
   switch(CTRLPF & TIA_CTRLPF_BALL_SIZE_MASK){
   case 0x00:
     playField->ball_size = 1;
+    tia->ball->width = 1;
     break;
   case 0x10:
     playField->ball_size = 2;
+    tia->ball->width = 2;
+
     break;
   case 0x20:
     playField->ball_size = 4;
+    tia->ball->width = 4;
+
     break;
   case 0x30:
     playField->ball_size = 8;
+    tia->ball->width = 8;
+
     break;
   default:
     assert(0);
@@ -97,15 +107,31 @@ getSpritePixels(int row,
 {
   Uint32 p0_pixel = 0;
   Uint32 p1_pixel = 0;
+  Uint32 ball_pixel = 0;
+  Uint32 m0_pixel = 0;
+  Uint32 m1_pixel = 0;
 
   ColorPalette p0_color = {0,0,0};
   ColorPalette p1_color = {0,0,0};
+  ColorPalette m0_color = {0,0,0};
+  ColorPalette m1_color = {0,0,0};
+  ColorPalette ball_color = {0,0,0};
 
   p0_color = palette[player0->lum][player0->color];
   p0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
 
   p1_color = palette[player1->lum][player1->color];
   p1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
+
+  m0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
+  
+  m1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
+  
+  ball_color = palette[playField->bk_lum][playField->bk_color];
+  ball_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
+  
+  
+  
   // is this the right place for horizontal motion?
   if(tia->hMotionPending){
     tia->hMotionPending = false;
@@ -152,7 +178,8 @@ getSpritePixels(int row,
 	*p0Pixel = 0;
       
       }
-      player0->pixBit=player0->pixBit==7?-1:player0->pixBit+1;
+      player0->pixBit=player0->pixBit==7?-1:
+	player0->pixBit+1;
 
     }
   }
@@ -192,13 +219,137 @@ getSpritePixels(int row,
     }
   }
 
+  // ball
+  if(ResetBall){
+      tia->ball->pixBit = 0;
+      tia->ball->clkStart = column;
+      ResetBall = false;
+
+  } else if (tia->ball->enabled) {
+    if(tia->ball->clkStart == column){
+      tia->ball->pixBit = 0;
+    }
+  
+    if (tia->ball->pixBit < 0 ) {
+      *hasB = false;
+      // could set the alpha?
+      *bPixel = 0;
+    } else {
+      if (tia->ball->pixBit < tia->ball->width){
+	*hasB = true;
+	// could set the alpha?
+	*bPixel = ball_pixel;
+      
+      }
+      else {
+	*hasB = false;
+	// could set the alpha?
+	*bPixel = 0;
+      
+      }
+      if(tia->ball->pixBit>=tia->ball->width)
+	tia->ball->pixBit = -1;
+      else
+	tia->ball->pixBit++;
+    }
+  }
+
+
+  // missiles
+  
+  // missile 0
+  if(ResetMissile0) {
+    ResetMissile0 = false;
+    missile0->pixBit = 0;
+    missile0->clkStart = column;
+
+  }
+  else if(tia->missile0->enabled) {
+    if( missile0->clkStart == column){
+      missile0->pixBit = 0;
+      missile0->clkStart = column;
+    }
+
+    if (missile0->pixBit < 0 ) {
+      *hasM0 = false;
+      // could set the alpha?
+      *p0Pixel = 0;
+    } else {
+      // get p0 pixel!
+      if ( ){
+	*hasM0 = true;
+	// could set the alpha?
+	*p0Pixel = p0_pixel;
+    
+      }
+      else {
+	*hasM0 = false;
+	// could set the alpha?
+	*p0Pixel = 0;
+      
+      }
+      missile0->pixBit=missile0->pixBit==7?-1:
+	missile0->pixBit+1;
+
+    }
+  }
+
+
+  // LOOK TO problemkaputt.de for good explanation on delay.
+  /*
+
+    Basically, don't a write to a register doesn't happen until a write to a corresponding second register happens.
+    25h - VDELP0 - Vertical delay player 0 (Delay GRP0 until writing to GRP1)
+    26h - VDELP1 - Vertical delay player 1 (Delay GRP1 until writing to GRP0)
+    27h - VDELBL - Vertical delay ball (Delay ENABL until writing to GRP1)
+    When VDELPx is set, writes to GRPx are delayed until GRPy is written to - which may be done in the same scanline, in one of the next scanlines, or in the next frame, or never - and may thus actually cause a horizontal, vertical, framerate, or even endless delay.
+
+    Bit  Expl.
+    0    Vertical Delay  (0=No delay, 1=Delay until writing to GRP0/GRP1)
+    1-7  Not used
+
+   */  
+  // missile 1
+  if(ResetMissile1){
+      missile1->pixBit = 0;
+      missile1->clkStart = column;
+      ResetMissile1 = false;
+
+  } else if (tia->missile1->enabled) {
+    if(missile1->clkStart == column){
+      missile1->pixBit = 0;
+      missile1->clkStart = column;
+    }
+  
+    if (missile1->pixBit < 0 ) {
+      *hasM1 = false;
+      // could set the alpha?
+      *p1Pixel = 0;
+    } else {
+      // get p1 pixel!
+      if ( ){
+	*hasM1 = true;
+	// could set the alpha?
+	*p1Pixel = p1_pixel;
+      
+      }
+      else {
+	*hasM1 = false;
+	// could set the alpha?
+	*p1Pixel = 0;
+      
+      }
+      missile1->pixBit=missile1->pixBit==7?-1:missile1->pixBit+1;
+    }
+  }
+
+
+  
   *hasM0 = false;
   *hasM1 = false;
-  *hasB = false;
     
   *m0Pixel = 0;
   *m1Pixel = 0;
-  *bPixel = 0;
   
   return 0;
 }
@@ -449,9 +600,10 @@ TiaPlayField(int row, int column){
     assert(0);
     break;
   }
+
   
-  framebuffer[row_adj][col_adj] = hasP0?p0_pixel:hasP1?p1_pixel:
-    hasPf?pf_pixel:bk_pixel;
+  framebuffer[row_adj][col_adj] = hasP0?p0_pixel:hasP1?
+    p1_pixel:hasB?b_pixel:hasPf?pf_pixel:bk_pixel;
 
   //  assert( framebuffer[ 192/2][75] == 0);
   
@@ -470,27 +622,64 @@ int TiaReadRegs()
 {
   static bool vsync_on = false;
   static bool vblank_on = false;
+
+  tia->missile0->width =
+    1 << (memmap->tia_write[TIA_WRITE_NUSIZ0] >> 4 & (0x3));
+
+  tia->missile1->width =
+    1 << (memmap->tia_write[TIA_WRITE_NUSIZ1] >> 4 & (0x3));
+
+  if(memmap->tia_write[TIA_WRITE_ENAM0] & (1<<1)) {
+    tia->missile0->enabled = true;
+  }
+  else{
+    tia->missile0->enabled = false;
+  }
   
+  if(memmap->tia_write[TIA_WRITE_ENAM1] & (1<<1)) {
+    tia->missile1->enabled = true;
+  }
+  else{
+    tia->missile1->enabled = false;
+  }
+  
+  if(memmap->tia_write[TIA_WRITE_ENABL] & (1<<1)) {
+    tia->ball->enabled = true;
+  }
+  else{
+    tia->ball->enabled = false;
+  }
+
   if(memmap->tia_write[TIA_WRITE_VSYNC] & (1<<1))
     {
+      if(!vsync_on)
+	LOG("VSYNC ON%s", "");
+
       vsync_on = true;
       tia->row = 0;
     }
   else if (vsync_on)
     {
+      LOG("VSYNC OFF%s", "");
       vsync_on = false;
       tia->row = VERTICAL_SYNC;
     }
   if(memmap->tia_write[TIA_WRITE_VBLANK] & (1<<1))
     {
+      if(!vblank_on)
+	LOG("VBLANK ON%s", "");
       //printf("VBLANK\n");
+      //tia->row = 0;
+
+      vblank_on = true;
     }
   else if (vblank_on)
     {
       vblank_on = false;
-      tia->row = 0;
+      LOG("VBLANK OFF%s", "");
     }
 
+  
   player0->hMotion = 
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP0]);
   player1->hMotion =
@@ -534,6 +723,12 @@ TiaCreate()
   player1 = calloc(1, sizeof(Sprite));
   assert(player1);
   player1->pixBit = -1;
+
+  tia->ball = calloc(1, sizeof(Sprite));
+  assert(tia->ball);
+  tia->ball->pixBit = -1;
+
+    
   return 0;
 }
 

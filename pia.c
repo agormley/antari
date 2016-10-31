@@ -1,3 +1,8 @@
+/***
+ * PIA is a separate chip on the Atari that, among 
+ * things, has timers and handles most of the user input.
+ */
+
 #include "includes.h"
 
 int
@@ -36,8 +41,8 @@ PiaWriteRegs(){
     byte |= 1 << 0;
   }
 
- 
   memmap->memory[SWCHB] = byte;
+
   byte = 0;
   if(pia->p0left){
     byte |= 1 << 6;
@@ -62,8 +67,7 @@ PiaWriteRegs(){
     memmap->tia_read[TIA_READ_INPT4] = 1 << 7;
     pia->p0button = false;
   }
-  
- 
+   
   return 0;
 }
 int
@@ -73,17 +77,15 @@ PiaReadRegs()
 }
 
 int
-PiaCycle()
+PiaHandleTimer()
 {
-  // read all the registers!
-  PiaReadRegs();
-  PiaWriteRegs();
   int intervalTimer = pia->timer_interval_timer;
-
+  
   if (intervalTimer == 0)
     {
       // underflow, interval is now 1
       if (pia->timer == 0) {
+	pia->timer_pending = false;
 	pia->timer_interval = 1;
 	memmap->memory[INSTAT] =
 	  3 << 6;
@@ -95,6 +97,17 @@ PiaCycle()
     pia->timer_interval;
   
   memmap->memory[INTIM] = pia->timer;
+  return 0;
+}
+
+int
+PiaCycle()
+{
+  // read all the registers!
+  PiaReadRegs();
+  PiaWriteRegs();
+  PiaHandleTimer();
+  
   return 0;
 
 }

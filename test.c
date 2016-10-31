@@ -34,12 +34,85 @@ TiaConvertHmToInt(BYTE hm)
   return result;
 }
 
+typedef struct test_pia{
+  unsigned char timer;
+  bool timer_pending;
+  int timer_interval;
+  int timer_interval_timer;
+}PIA;
+PIA *pia;
+int
+HandleTimer()
+{
+  int intervalTimer = pia->timer_interval_timer;
+  
+  if (intervalTimer == 0)
+    {
+      // underflow, interval is now 1
+      if (pia->timer == 0) {
+	pia->timer_interval = 1;
+	printf("%s: timer has finished\n", __FUNCTION__);
+      }
+      pia->timer--; 
+    }
+  pia->timer_interval_timer =
+    (intervalTimer + 1) %
+    pia->timer_interval;
+  
+  printf("%s: timer is %#x\n", __FUNCTION__, pia->timer);
+  return 0;
+}
+
+
+
+int
+TimerTest()
+{
+  int i = 0;
+  int test_time = 1000;
+  
+  for(i = 0; i < test_time; i++)
+    {
+      HandleTimer();
+    }
+  return 0;
+}
+
+int TimerUnitTests()
+{
+
+  pia = calloc(1, sizeof(PIA));
+  pia->timer_interval = 1;
+
+  // 1T
+  printf("1T test\n");
+  pia->timer_pending = true;
+  pia->timer_interval = 1;
+  pia->timer_interval_timer = 0;
+  pia->timer = 0xF0;
+  TimerTest();
+
+  
+  // 8T
+  printf("8T test\n");
+  pia->timer_pending = true;
+  pia->timer_interval = 8;
+  pia->timer_interval_timer = 0;
+  pia->timer = 0x10;
+  TimerTest();
+  
+  return 0;
+}
 
 
 int main(int argc, char *argv[])
 {
   int i;
   BYTE hm = 0;
+
+  TimerUnitTests();
+
+  
   for(i = 0; i < 16; i++, hm += 0x10){
 
   

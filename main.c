@@ -3,59 +3,62 @@
 char *UsageString = "Usage: atari <rom-name>";
 
 int
-RunProgram(STELLA* tia){
+RunProgram(STELLA* stella){
   long long counter = 0;
-  
-  f = fopen("x.log", "a+"); // a+ (create + append) option will allow appending which is useful in a log file
+
+  f = fopen("debug.log", "w+");
+
   while(1) {
     if(gQuit)
       return 1;
-    if(counter % 3 == 0)
+    if(counter % 3 == 0){
       CpuCycle();
-    
+      PiaCycle();
+    }
+
     TiaCycle();
-    PiaCycle();
-    
+
     if(counter % (STELLA_VERTICAL_CLOCK_COUNTS*STELLA_HORIZONTAL_LINES) == 0){
-      StellaPrintFrame(tia, framebuffer);
+      StellaPrintFrame(stella, framebuffer);
     }
     counter++;
-    
+
   }
 }
 
 
 int main(int argc, char *argv[])
 {
-  //  int go;
+  STELLA* stella = NULL;
 
   if (argc != 2){
     printf("%s\n", UsageString);
     return -1;
   }
-  
+
   /* Start up SDL */
-  STELLA* tia = NULL;
-  tia = StellaCreate(); 
-  
+  stella = StellaCreate();
+
   printf("Stella created\n");
 
   MemoryCreate();
+
   TiaCreate();
+
   PiaCreate();
-  // ClockCreate();
+
   //open rom
   int fd  = open(argv[1], O_RDONLY);
   assert(fd >= 0);
   read(fd, memmap->rom, ROM_SIZE);
-  
+
   CpuCreate();
-  RunProgram(tia);
-  
-	
+
+  RunProgram(stella);
+
   atexit(cleanup);
-	
+
   /* Exit the program */
-	
+
   exit(0);
 }

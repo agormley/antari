@@ -253,6 +253,8 @@ typedef struct _sprite
   int pixBit;
   int clkStart;
   int hMotion;
+  int width;
+  bool enabled;
 }Sprite;
 
 typedef struct _playfield{
@@ -280,6 +282,10 @@ typedef struct _Tia {
   
   Sprite *player0;
   Sprite *player1;
+  Sprite *ball;
+  Sprite *missile0;
+  Sprite *missile1;
+
   PlayField *playfield;
 }Tia;
 
