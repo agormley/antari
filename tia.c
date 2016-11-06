@@ -113,9 +113,7 @@ getSpritePixels(int row,
 
   ColorPalette p0_color = {0,0,0};
   ColorPalette p1_color = {0,0,0};
-  ColorPalette m0_color = {0,0,0};
-  ColorPalette m1_color = {0,0,0};
-  ColorPalette ball_color = {0,0,0};
+  //  ColorPalette ball_color = {0,0,0};
 
   p0_color = palette[player0->lum][player0->color];
   p0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
@@ -127,7 +125,7 @@ getSpritePixels(int row,
   
   m1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
   
-  ball_color = palette[playField->bk_lum][playField->bk_color];
+  //  ball_color = palette[playField->bk_lum][playField->bk_color];
   ball_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
   
   
@@ -260,36 +258,36 @@ getSpritePixels(int row,
   // missile 0
   if(ResetMissile0) {
     ResetMissile0 = false;
-    missile0->pixBit = 0;
-    missile0->clkStart = column;
+    tia->missile0->pixBit = 0;
+    tia->missile0->clkStart = column;
 
   }
   else if(tia->missile0->enabled) {
-    if( missile0->clkStart == column){
-      missile0->pixBit = 0;
-      missile0->clkStart = column;
+    if( tia->missile0->clkStart == column){
+      tia->missile0->pixBit = 0;
+      tia->missile0->clkStart = column;
     }
 
-    if (missile0->pixBit < 0 ) {
+    if (tia->missile0->pixBit < 0 ) {
       *hasM0 = false;
       // could set the alpha?
-      *p0Pixel = 0;
+      *m0Pixel = 0;
     } else {
       // get p0 pixel!
-      if ( ){
+      if (tia->missile0->enabled ){
 	*hasM0 = true;
 	// could set the alpha?
-	*p0Pixel = p0_pixel;
+	*m0Pixel = m0_pixel;
     
       }
       else {
 	*hasM0 = false;
 	// could set the alpha?
-	*p0Pixel = 0;
+	*m0Pixel = 0;
       
       }
-      missile0->pixBit=missile0->pixBit==7?-1:
-	missile0->pixBit+1;
+      tia->missile0->pixBit=tia->missile0->pixBit==7?-1:
+	tia->missile0->pixBit+1;
 
     }
   }
@@ -311,35 +309,35 @@ getSpritePixels(int row,
    */  
   // missile 1
   if(ResetMissile1){
-      missile1->pixBit = 0;
-      missile1->clkStart = column;
+      tia->missile1->pixBit = 0;
+      tia->missile1->clkStart = column;
       ResetMissile1 = false;
 
   } else if (tia->missile1->enabled) {
-    if(missile1->clkStart == column){
-      missile1->pixBit = 0;
-      missile1->clkStart = column;
+    if(tia->missile1->clkStart == column){
+      tia->missile1->pixBit = 0;
+      tia->missile1->clkStart = column;
     }
   
-    if (missile1->pixBit < 0 ) {
+    if (tia->missile1->pixBit < 0 ) {
       *hasM1 = false;
       // could set the alpha?
-      *p1Pixel = 0;
+      *m1Pixel = 0;
     } else {
       // get p1 pixel!
-      if ( ){
+      if ( tia->missile0->enabled ){
 	*hasM1 = true;
 	// could set the alpha?
-	*p1Pixel = p1_pixel;
+	*m1Pixel = m1_pixel;
       
       }
       else {
 	*hasM1 = false;
 	// could set the alpha?
-	*p1Pixel = 0;
+	*m1Pixel = 0;
       
       }
-      missile1->pixBit=missile1->pixBit==7?-1:missile1->pixBit+1;
+      tia->missile1->pixBit=tia->missile1->pixBit==7?-1:tia->missile1->pixBit+1;
     }
   }
 
@@ -728,7 +726,14 @@ TiaCreate()
   assert(tia->ball);
   tia->ball->pixBit = -1;
 
-    
+  tia->missile0 = calloc(1, sizeof(Sprite));
+  assert(tia->missile0);
+  tia->missile0->pixBit = -1;
+
+  tia->missile1 = calloc(1, sizeof(Sprite));
+  assert(tia->missile1);
+  tia->missile1->pixBit = -1;
+
   return 0;
 }
 

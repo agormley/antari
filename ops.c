@@ -4,16 +4,40 @@ BYTE
 add(BYTE arg1, BYTE arg2, BYTE carry)
 {
   ushort result = 0;
-    
-  assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
   result = arg1 + arg2 + carry;
 
+  // Best I can tell, these are set based on binary addition
+  // So do that unconditionally.
   SETSIGN((BYTE)result);
   SETZERO((BYTE)result);
   SETOVER(arg1, arg2, result);
-  SETCARRY(result);
+    
+  
+  if (FLAG_DECIMAL(REG_ST)) {
+    BYTE ones = (arg1 & 0xF) + (arg2 & 0xF) + carry;
+    if (ones > 0x9){
+      carry = 0x10;
+      ones = ones % 10;
+    }
+    else{
+      carry = 0;
+    }
+    
+    BYTE tens = (arg1 & 0xF0) + (arg2 & 0xF0) + carry;
+    if (tens / 0xA0){
+      FLAG_CARRY_SET(REG_ST);
+    }
+    else {
+      FLAG_CARRY_CLEAR(REG_ST);
+    }
+    tens = tens % 0xA0;
+    
+    result = tens | ones;
+    return (BYTE)result;
+  }
 
+  SETCARRY(result);
   return (BYTE)result;
 }
 
@@ -212,7 +236,6 @@ sbc(BYTE arg1, BYTE arg2, BYTE carry)
 {
   ushort result = 0;
   BYTE tmp = 0; 
-  assert(!FLAG_DECIMAL(processor->regs.flags)); 
 
   // Get its twos compliment
   // Negate the bits
@@ -230,6 +253,31 @@ sbc(BYTE arg1, BYTE arg2, BYTE carry)
   SETZERO((BYTE)result);
   SETOVER(arg1, arg2, result);
 
+  if (FLAG_DECIMAL(REG_ST)) {
+    BYTE borrowOnes = 0;
+    BYTE borrowTens = 0;
+    if((arg1 & 0xF) < (arg2 & 0xF)) {
+      borrowOnes = 0xA;
+    }
+    BYTE ones = borrowOnes + (arg1 & 0xF) - (arg2 & 0xF) - (1 ^ carry);
+
+    if(((arg1 & 0xF0) - borrowOnes) < (arg2 & 0xF0)) {
+      borrowTens = 0xA0;
+    }
+
+    BYTE tens = borrowTens + (arg1 & 0xF0) - (arg2 & 0xF0) - borrowOnes;
+    if (borrowTens){
+      FLAG_CARRY_CLEAR(REG_ST);
+    }
+    else {
+      FLAG_CARRY_SET(REG_ST);
+    }
+    
+    result = tens | ones;
+    return (BYTE)result;
+  }
+
+  
   // Carry is reverse borrow.
   if( result > 255 )
     FLAG_CARRY_CLEAR(REG_ST);
