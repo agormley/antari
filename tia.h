@@ -255,6 +255,8 @@ typedef struct _sprite
   int hMotion;
   int width;
   bool enabled;
+  bool reset;
+  bool reflect;
 }Sprite;
 
 typedef struct _playfield{

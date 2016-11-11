@@ -24,6 +24,8 @@ MemoryGetByteAt(unsigned short addr)
   unsigned char byte = 0;
   ushort addr1 = (addr & MEMORY_MASK);
 
+  if (addr == 0xfe02 || addr == 0xfe03 || addr == 0xfe04)
+    printf("getting number posistion\n");
   if (addr >= 280  && addr < 299)
     printf("Getting PIA addr %#x\n", addr);
 
@@ -43,12 +45,17 @@ MemoryGetByteAt(unsigned short addr)
   return byte;
 }
 
+extern int size;
+
 void
 MemorySetByteAt(unsigned short addr, unsigned char byte)
 {
   assert(addr >= 0 && addr < 0x10000);
-  
-  ushort addr1 = (addr & MEMORY_MASK);
+  ushort addr1; 
+  if(size == 2048)
+    addr1 = (addr & 0xFFF);
+  else
+    addr1 = (addr & MEMORY_MASK);
   
   //  if (addr1 >= TIA_WRITE_PF0  && addr <= TIA_WRITE_PF2)
   LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
@@ -57,25 +64,35 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   // please put vars inside a struct, preferabl tia
   switch(addr1){
   case TIA_WRITE_WSYNC:
-    Wsync = true;
+    tia->wsync = true;
     break;
   case TIA_WRITE_RSYNC:
     printf("%s: rsync strobe not implemented\n", __FUNCTION__);
     break;
   case TIA_WRITE_RESP0:
-    ResetPlayer0 = true;
+    printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
+
+    tia->player0->reset = true;
     break;
   case TIA_WRITE_RESP1:
-    ResetPlayer1 = true;
+    printf("%s: reset p1 %d\n", __FUNCTION__, tia->column);
+
+    tia->player1->reset = true;
     break;
   case TIA_WRITE_RESM0:
-    ResetMissile0 = true;
+    printf("%s: reset m0 %d \n", __FUNCTION__, tia->column);
+
+    tia->missile0->reset = true;
     break;
   case TIA_WRITE_RESM1:
-    ResetMissile1 = true;
+    printf("%s: reset m1 %d \n", __FUNCTION__, tia->column);
+
+    tia->missile0->reset = true;
     break;
   case TIA_WRITE_RESBL:
-    ResetBall = true;
+    printf("%s: reset ball %d\n", __FUNCTION__, tia->column);
+
+    tia->ball->reset = true;
     break;
  
   case TIA_WRITE_HMOVE:

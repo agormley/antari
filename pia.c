@@ -14,10 +14,10 @@ PiaCreate(){
   
   // Let's start with color;
   pia->color = true;
-  pia->game_select = 1;
-  pia->game_reset = 1;
+  pia->game_select = false;
+  pia->game_reset = false;
   
-  MemorySetByteAt(SWCHB, 1 << 3);
+  MemorySetByteAt(SWCHB, 0xB);
   return 0;
 }
 
@@ -38,7 +38,7 @@ PiaWriteRegs(){
     byte |= 1 << 1;
   }
   if(!pia->game_reset){
-    byte |= 1 << 0;
+    byte |= 1 << 1;
   }
 
   memmap->memory[SWCHB] = byte;

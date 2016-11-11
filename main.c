@@ -26,6 +26,7 @@ RunProgram(STELLA* stella){
   }
 }
 
+int size = 4096;
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +51,8 @@ int main(int argc, char *argv[])
   //open rom
   int fd  = open(argv[1], O_RDONLY);
   assert(fd >= 0);
-  read(fd, memmap->rom, ROM_SIZE);
+
+  size = read(fd, memmap->rom, ROM_SIZE);
 
   CpuCreate();
 

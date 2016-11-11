@@ -20,12 +20,12 @@ void StackPushShort(ushort bytes){
 }
 
 #define OPPRINTF(...) printf(__VA_ARGS__)
-// #define OPPRINTF(...) 
+//#define OPPRINTF(...) 
 
 int
 CpuCycle(){
   // get the next opcode
-  unsigned char opcode = MemoryGetByteAt(REG_PC);
+  unsigned char opcode = 0;
     
   // helper vars for calculations
   unsigned char arg1 = 0;
@@ -39,14 +39,17 @@ CpuCycle(){
     return processor->cycles;
   }
       
-  if(Wsync) {
+  if(tia->wsync) {
     //printf("CPU PAUSED\n");
     return 0;
   }
+
+  opcode = MemoryGetByteAt(REG_PC);
     
   // printf("PC: %#x\n", REG_PC);
   //    printf("OPCODE:%#x\n", opcode);
-    
+  OPPRINTF("row %d, column %d\n", tia->row, tia->column);
+  
   switch(opcode){
   case OPCODE_ADC_IMM:
     arg1 = REG_A;
@@ -588,7 +591,7 @@ CpuCycle(){
     arg2 = getIndirectX(REG_PC+1, &addr, NULL);
 
     cmp(arg1, arg2);
-    OPPRINTF("CMP ($.2%x,X)\n", addr);
+    OPPRINTF("CMP ($x%.2x,X)\n", addr);
 
     REG_PC += 2;
     cycles = 6;
@@ -600,7 +603,7 @@ CpuCycle(){
     arg2 = getIndirectY(REG_PC+1, &addr, NULL);
 
     cmp(arg1, arg2);
-    OPPRINTF("CMP ($.2%x),Y\n", addr);
+    OPPRINTF("CMP ($%.2x),Y\n", addr);
 
     REG_PC += 2;
     cycles = 5;
@@ -1024,7 +1027,7 @@ CpuCycle(){
   case OPCODE_LDA_IND_X:
     arg2 = getIndirectX(REG_PC+1, &addr, NULL);
 
-    OPPRINTF("LDA ($.2%x,X)\n", addr);
+    OPPRINTF("LDA ($%.2x,X)\n", addr);
 
     lda(arg2);
 
@@ -1035,7 +1038,7 @@ CpuCycle(){
   case OPCODE_LDA_IND_Y:
     arg2 = getIndirectY(REG_PC+1, &addr, NULL);
 
-    OPPRINTF("LDA ($.2%x),Y\n", addr);
+    OPPRINTF("LDA ($%.2x),Y\n", addr);
 
     lda(arg2);
     REG_PC += 2;
@@ -1854,6 +1857,19 @@ CpuCycle(){
     cycles = 4;
 	    
     break;
+  case 0x0C:
+  case 0x1C:
+  case 0x3C:
+  case 0x5C:
+  case 0x7C:
+  case 0xDC:
+  case 0xFC:
+    // SKW    ***
+    // SKW skips next word (two bytes).
+    REG_PC = REG_PC+2;
+    cycles = 4;
+    break;
+    
   default:
     printf("ERROR: UNKNOWN OPCODE:%d\n", opcode);
 

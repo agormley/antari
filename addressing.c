@@ -85,11 +85,14 @@ getIndirectX(ushort addr, ushort* mid, ushort *write_addr)
 BYTE
 getIndirectY(ushort addr, ushort* mid, ushort *write_addr)
 {
- 
-  *mid = MemoryGetTwoBytesAt(MemoryGetByteAt(addr));
+  ushort address = 0;
+  
+  assert(mid);
+  *mid = MemoryGetByteAt(addr);
+  address = MemoryGetTwoBytesAt(*mid);
 
   if(write_addr)
-    *write_addr = *mid + REG_Y; 
+    *write_addr = address + REG_Y; 
 
-  return MemoryGetByteAt(REG_Y + *mid);
+  return MemoryGetByteAt(REG_Y + address);
 }

@@ -38,9 +38,6 @@ TiaConvertHmToInt(BYTE hm)
 #define TIA_COLOR_MASK 0xF0
 #define TIA_LUM_MASK 0x0E
 
-
-Sprite *player0;
-Sprite *player1;
 PlayField *playField;
 
 static
@@ -48,10 +45,10 @@ int
 TiaParsePlayField()
 {
 
-  player0->color = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_COLOR_MASK) >> 4;
-  player0->lum = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_LUM_MASK) >> 1;
-  player1->color = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_COLOR_MASK) >> 4;
-  player1->lum = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_LUM_MASK) >> 1;
+  tia->player0->color = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_COLOR_MASK) >> 4;
+  tia->player0->lum = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_LUM_MASK) >> 1;
+  tia->player1->color = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_COLOR_MASK) >> 4;
+  tia->player1->lum = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_LUM_MASK) >> 1;
   
   playField->pf_color = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_COLOR_MASK) >> 4;
   playField->pf_lum = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_LUM_MASK) >> 1;
@@ -115,10 +112,10 @@ getSpritePixels(int row,
   ColorPalette p1_color = {0,0,0};
   //  ColorPalette ball_color = {0,0,0};
 
-  p0_color = palette[player0->lum][player0->color];
+  p0_color = palette[tia->player0->lum][tia->player0->color];
   p0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
 
-  p1_color = palette[player1->lum][player1->color];
+  p1_color = palette[tia->player1->lum][tia->player1->color];
   p1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
 
   m0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
@@ -133,38 +130,38 @@ getSpritePixels(int row,
   // is this the right place for horizontal motion?
   if(tia->hMotionPending){
     tia->hMotionPending = false;
-    player0->clkStart += player0->hMotion;
-    if(player0->clkStart < 0)
-      player0->clkStart = 0;
+    tia->player0->clkStart += tia->player0->hMotion;
+    if(tia->player0->clkStart < 0)
+      tia->player0->clkStart = 0;
 
 
-    player1->clkStart += player1->hMotion;
-    if(player1->clkStart < 0)
-      player1->clkStart = 0;
+    tia->player1->clkStart += tia->player1->hMotion;
+    if(tia->player1->clkStart < 0)
+      tia->player1->clkStart = 0;
 
   }
   
   // player 0
-  if(ResetPlayer0) {
-    ResetPlayer0 = false;
-    player0->pixBit = 0;
-    player0->clkStart = column;
+  if(tia->player0->reset) {
+    tia->player0->reset = false;
+    tia->player0->pixBit = 0;
+    tia->player0->clkStart = column;
 
   }
   else {
-    if( player0->clkStart == column){
-      player0->pixBit = 0;
-      player0->clkStart = column;
+    if( tia->player0->clkStart == column){
+      tia->player0->pixBit = 0;
+      tia->player0->clkStart = column;
     }
 
-    if (player0->pixBit < 0 ) {
+    if (tia->player0->pixBit < 0 ) {
       *hasP0 = false;
       // could set the alpha?
       *p0Pixel = 0;
     } else {
       // get p0 pixel!
       if ( memmap->tia_write[TIA_WRITE_GRP0] &
-	   (1 << (7 - player0->pixBit))){
+	   (1 << (7 - tia->player0->pixBit))){
 	*hasP0 = true;
 	// could set the alpha?
 	*p0Pixel = p0_pixel;
@@ -176,32 +173,32 @@ getSpritePixels(int row,
 	*p0Pixel = 0;
       
       }
-      player0->pixBit=player0->pixBit==7?-1:
-	player0->pixBit+1;
+      tia->player0->pixBit=tia->player0->pixBit==7?-1:
+	tia->player0->pixBit+1;
 
     }
   }
 
   // player 1
-  if(ResetPlayer1){
-      player1->pixBit = 0;
-      player1->clkStart = column;
-      ResetPlayer1 = false;
+  if(tia->player1->reset){
+      tia->player1->pixBit = 0;
+      tia->player1->clkStart = column;
+      tia->player1->reset = false;
 
   } else {
-    if(player1->clkStart == column){
-      player1->pixBit = 0;
-      player1->clkStart = column;
+    if(tia->player1->clkStart == column){
+      tia->player1->pixBit = 0;
+      tia->player1->clkStart = column;
     }
   
-    if (player1->pixBit < 0 ) {
+    if (tia->player1->pixBit < 0 ) {
       *hasP1 = false;
       // could set the alpha?
       *p1Pixel = 0;
     } else {
       // get p1 pixel!
       if ( memmap->tia_write[TIA_WRITE_GRP1] &
-	   (1 << (7 - player1->pixBit))){
+	   (1 << (7 - tia->player1->pixBit))){
 	*hasP1 = true;
 	// could set the alpha?
 	*p1Pixel = p1_pixel;
@@ -213,15 +210,15 @@ getSpritePixels(int row,
 	*p1Pixel = 0;
       
       }
-      player1->pixBit=player1->pixBit==7?-1:player1->pixBit+1;
+      tia->player1->pixBit=tia->player1->pixBit==7?-1:tia->player1->pixBit+1;
     }
   }
 
   // ball
-  if(ResetBall){
+  if(tia->ball->reset){
       tia->ball->pixBit = 0;
       tia->ball->clkStart = column;
-      ResetBall = false;
+      tia->ball->reset = false;
 
   } else if (tia->ball->enabled) {
     if(tia->ball->clkStart == column){
@@ -256,8 +253,8 @@ getSpritePixels(int row,
   // missiles
   
   // missile 0
-  if(ResetMissile0) {
-    ResetMissile0 = false;
+  if(tia->missile0->reset) {
+    tia->missile0->reset = false;
     tia->missile0->pixBit = 0;
     tia->missile0->clkStart = column;
 
@@ -308,10 +305,10 @@ getSpritePixels(int row,
 
    */  
   // missile 1
-  if(ResetMissile1){
+  if(tia->missile1->reset){
       tia->missile1->pixBit = 0;
       tia->missile1->clkStart = column;
-      ResetMissile1 = false;
+      tia->missile1->reset = false;
 
   } else if (tia->missile1->enabled) {
     if(tia->missile1->clkStart == column){
@@ -609,9 +606,12 @@ TiaPlayField(int row, int column){
 }
 
 int TiaClearHMotion(){
-  player0->hMotion = 0;
-  player1->hMotion = 0;
-
+  tia->player0->hMotion = 0;
+  tia->player1->hMotion = 0;
+  tia->missile0->hMotion = 0;
+  tia->missile1->hMotion = 0;
+  tia->ball->hMotion = 0;
+  
   // and the other sprites
   return 0;
 }
@@ -677,10 +677,12 @@ int TiaReadRegs()
       LOG("VBLANK OFF%s", "");
     }
 
-  
-  player0->hMotion = 
+  tia->player0->reflect = memmap->tia_write[TIA_WRITE_REFP0];
+  tia->player1->reflect = memmap->tia_write[TIA_WRITE_REFP1];
+
+  tia->player0->hMotion = 
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP0]);
-  player1->hMotion =
+  tia->player1->hMotion =
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP1]);
 
   return 0;
@@ -696,7 +698,7 @@ TiaCycle()
  
   tia->column = (tia->column + 1) % CLOCK_COUNTS;
   if(tia->column == 0) {
-    Wsync = false;
+    tia->wsync = false;
     tia->row = (tia->row + 1) % SCAN_LINES;
   }
     
@@ -714,13 +716,13 @@ TiaCreate()
   memset(&framebuffer, 0, sizeof(int) * FRAME_CLOCK_COUNTS * FRAME_LINES);
 
 
-  player0 = calloc(1, sizeof(Sprite));
-  assert(player0);
-  player0->pixBit = -1;
+  tia->player0 = calloc(1, sizeof(Sprite));
+  assert(tia->player0);
+  tia->player0->pixBit = -1;
   
-  player1 = calloc(1, sizeof(Sprite));
-  assert(player1);
-  player1->pixBit = -1;
+  tia->player1 = calloc(1, sizeof(Sprite));
+  assert(tia->player1);
+  tia->player1->pixBit = -1;
 
   tia->ball = calloc(1, sizeof(Sprite));
   assert(tia->ball);
