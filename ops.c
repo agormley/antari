@@ -276,13 +276,12 @@ sbc(BYTE arg1, BYTE arg2, BYTE carry)
     result = tens | ones;
     return (BYTE)result;
   }
-
   
   // Carry is reverse borrow.
-  if( result > 255 )
-    FLAG_CARRY_CLEAR(REG_ST);
+  if( ~result > 255 )
+      FLAG_CARRY_SET(REG_ST);
   else
-    FLAG_CARRY_SET(REG_ST);
+      FLAG_CARRY_CLEAR(REG_ST);
   
   return (BYTE)result;
 }
