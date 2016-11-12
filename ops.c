@@ -6,7 +6,7 @@ add(BYTE arg1, BYTE arg2, BYTE carry)
   ushort result = 0;
 
   result = arg1 + arg2 + carry;
-
+  
   // Best I can tell, these are set based on binary addition
   // So do that unconditionally.
   SETSIGN((BYTE)result);
@@ -235,18 +235,16 @@ BYTE
 sbc(BYTE arg1, BYTE arg2, BYTE carry)
 {
   ushort result = 0;
-  BYTE tmp = 0; 
-
+  BYTE tmp = 1; 
+  BYTE savedarg2 = arg2;
   // Get its twos compliment
   // Negate the bits
   arg2 = ~arg2;
 
   // Add one unless (not) carry indicates that borrow occurred
   // thus the difference will be one less.
-  if (carry){
-    tmp = 1;
-  }
-  
+  tmp = carry;
+
   result = arg1 + arg2 + tmp;
 
   SETSIGN((BYTE)result);
@@ -278,11 +276,12 @@ sbc(BYTE arg1, BYTE arg2, BYTE carry)
   }
   
   // Carry is reverse borrow.
-  if( ~result > 255 )
-      FLAG_CARRY_SET(REG_ST);
+    // Carry is reverse borrow.
+  if( arg1 < savedarg2 )
+    FLAG_CARRY_CLEAR(REG_ST);
   else
-      FLAG_CARRY_CLEAR(REG_ST);
-  
+    FLAG_CARRY_SET(REG_ST);
+
   return (BYTE)result;
 }
 

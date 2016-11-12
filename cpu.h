@@ -189,7 +189,7 @@
 #define SIGN_MASK (1<<7)
 
 #define FLAG_CARRY_MASK (1 << 0)
-#define FLAG_CARRY(a) ((FLAG_CARRY_MASK & a)>>1)
+#define FLAG_CARRY(a) (FLAG_CARRY_MASK & a)
 #define FLAG_CARRY_CLEAR(a) (a &= ~FLAG_CARRY_MASK)
 #define FLAG_CARRY_SET(a) (a |= FLAG_CARRY_MASK)
 #define SETCARRY(a) ((a>255)?					\
