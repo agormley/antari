@@ -159,15 +159,16 @@ ldy(BYTE val)
 void
 lsr(BYTE *val)
 {
-  
- *val = 0x7F & (*val >> 1);
- SETSIGN(*val);
- SETZERO(*val);
- if(*val & 0xFE)
-   FLAG_CARRY_SET(REG_ST);
- else
-   FLAG_CARRY_CLEAR(REG_ST);
 
+  if(*val & 0x1)
+    FLAG_CARRY_SET(REG_ST);
+  else
+    FLAG_CARRY_CLEAR(REG_ST);
+  
+  *val = 0x7F & (*val >> 1);
+  SETSIGN(*val);
+  SETZERO(*val);
+  
 }
 
 void

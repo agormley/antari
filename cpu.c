@@ -1902,4 +1902,18 @@ CpuCreate()
 }
 
 
- 
+
+void
+CpuPrintRegs()
+{
+  printf("A: %.2x\n"
+	 "X: %.2x\n"
+	 "Y: %.2x\n"
+	 "Flags: %.2x\n"
+	 "Stack: %.2x\n",
+	 REG_A,
+	 REG_X,
+	 REG_Y,
+	 REG_ST,
+	 REG_SP);
+}
