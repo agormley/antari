@@ -66,6 +66,17 @@ StellaProcessEvent(SDL_Event event){
       break;
     }
     break;
+  case SDL_KEYUP:
+    // TODO: move to keypress event handle
+    switch( event.key.keysym.sym ){
+    case SDLK_F1:
+      pia->game_reset = false;
+      break;
+    case SDLK_F2:
+      pia->game_select = false;
+      break;
+    }
+    break;
   default:
     break;
   }

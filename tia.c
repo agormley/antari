@@ -110,7 +110,7 @@ getSpritePixels(int row,
 
   ColorPalette p0_color = {0,0,0};
   ColorPalette p1_color = {0,0,0};
-  //  ColorPalette ball_color = {0,0,0};
+  ColorPalette ball_color = {0,0,0};
 
   p0_color = palette[tia->player0->lum][tia->player0->color];
   p0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
@@ -122,8 +122,8 @@ getSpritePixels(int row,
   
   m1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
   
-  //  ball_color = palette[playField->bk_lum][playField->bk_color];
-  ball_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
+  ball_color = palette[playField->pf_lum][playField->pf_color];
+  ball_pixel = StellaCreatePixel(0x00, ball_color.red, ball_color.green, ball_color.blue);
   
   
   

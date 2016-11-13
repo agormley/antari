@@ -208,7 +208,7 @@ void
 ror(BYTE *val)
 {
   ushort result = 0;
-  BYTE carry = *val & 0xFE;
+  BYTE carry = *val & 0x1;
 
   // Calculate new value
   result = *val >> 1;

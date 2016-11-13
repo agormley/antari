@@ -26,19 +26,19 @@ PiaWriteRegs(){
 
   BYTE byte = 0;
   if(pia->p1difficulty){
-    byte = 1 << 7;
+    byte = (1 << 7);
   }
   if(pia->p0difficulty){
-    byte |= 1 << 6;
+    byte |= (1 << 6);
   }
   if(pia->color){
-    byte |= 1 << 3;
+    byte |= (1 << 3);
   }
   if(!pia->game_select){
-    byte |= 1 << 1;
+    byte |= (1 << 1);
   }
   if(!pia->game_reset){
-    byte |= 1 << 1;
+    byte |= (1 << 0);
   }
 
   memmap->memory[SWCHB] = byte;
