@@ -1,3 +1,11 @@
+#define REG_A processor->regs.accumulator
+#define REG_X processor->regs.x
+#define REG_Y processor->regs.y
+#define REG_SP processor->regs.sp
+#define REG_PC processor->regs.pc
+#define REG_ST processor->regs.flags
+
+
 #define OPCODE_ADC_IMM		0x69
 #define OPCODE_ADC_ZERO		0x65
 #define OPCODE_ADC_ZERO_X	0x75
@@ -90,41 +98,41 @@
 
 #define OPCODE_LDA_IMM		0xA9
 #define OPCODE_LDA_ZERO		0xA5
-#define OPCODE_LDA_ZERO_X		0xB5  
+#define OPCODE_LDA_ZERO_X	0xB5  
 #define OPCODE_LDA_ABS		0xAD  
-#define OPCODE_LDA_ABS_X		0xBD  
-#define OPCODE_LDA_ABS_Y		0xB9  
-#define OPCODE_LDA_IND_X		0xA1  
-#define OPCODE_LDA_IND_Y		0xB1  
+#define OPCODE_LDA_ABS_X	0xBD  
+#define OPCODE_LDA_ABS_Y	0xB9  
+#define OPCODE_LDA_IND_X	0xA1  
+#define OPCODE_LDA_IND_Y	0xB1  
 
 #define OPCODE_LDX_IMM		0xA2  
 #define OPCODE_LDX_ZERO		0xA6  
-#define OPCODE_LDX_ZERO_Y		0xB6  
+#define OPCODE_LDX_ZERO_Y	0xB6  
 #define OPCODE_LDX_ABS		0xAE  
-#define OPCODE_LDX_ABS_Y		0xBE  
+#define OPCODE_LDX_ABS_Y	0xBE  
 
 #define OPCODE_LDY_IMM		0xA0
 #define OPCODE_LDY_ZERO		0xA4
-#define OPCODE_LDY_ZERO_X		0xB4
+#define OPCODE_LDY_ZERO_X	0xB4
 #define OPCODE_LDY_ABS		0xAC
-#define OPCODE_LDY_ABS_X		0xBC
+#define OPCODE_LDY_ABS_X	0xBC
 
 #define OPCODE_LSR_A		0x4A
 #define OPCODE_LSR_ZERO		0x46
-#define OPCODE_LSR_ZERO_X		0x56
+#define OPCODE_LSR_ZERO_X	0x56
 #define OPCODE_LSR_ABS		0x4E
-#define OPCODE_LSR_ABS_X		0x5E
+#define OPCODE_LSR_ABS_X	0x5E
 
 #define OPCODE_NOP		0xEA
 
 #define OPCODE_ORA_IMM		0x09
 #define OPCODE_ORA_ZERO		0x05
-#define OPCODE_ORA_ZERO_X		0x15
+#define OPCODE_ORA_ZERO_X	0x15
 #define OPCODE_ORA_ABS		0x0D
-#define OPCODE_ORA_ABS_X		0x1D
-#define OPCODE_ORA_ABS_Y		0x19
-#define OPCODE_ORA_IND_X		0x01
-#define OPCODE_ORA_IND_Y		0x11
+#define OPCODE_ORA_ABS_X	0x1D
+#define OPCODE_ORA_ABS_Y	0x19
+#define OPCODE_ORA_IND_X	0x01
+#define OPCODE_ORA_IND_Y	0x11
 
 #define OPCODE_TAX	0xAA
 #define OPCODE_TXA	0x8A
@@ -137,16 +145,16 @@
  
 #define OPCODE_ROL_A		0x2A
 #define OPCODE_ROL_ZERO		0x26
-#define OPCODE_ROL_ZERO_X		0x36
+#define OPCODE_ROL_ZERO_X	0x36
 #define OPCODE_ROL_ABS		0x2E
-#define OPCODE_ROL_ABS_X		0x3E
+#define OPCODE_ROL_ABS_X	0x3E
 
 
 #define OPCODE_ROR_A		0x6A
 #define OPCODE_ROR_ZERO		0x66
-#define OPCODE_ROR_ZERO_X		0x76
+#define OPCODE_ROR_ZERO_X	0x76
 #define OPCODE_ROR_ABS		0x6E
-#define OPCODE_ROR_ABS_X		0x7E
+#define OPCODE_ROR_ABS_X	0x7E
 
 #define OPCODE_RTI		0x40
 
@@ -154,20 +162,20 @@
 
 #define OPCODE_SBC_IMM		0xE9
 #define OPCODE_SBC_ZERO		0xE5
-#define OPCODE_SBC_ZERO_X		0xF5
+#define OPCODE_SBC_ZERO_X	0xF5
 #define OPCODE_SBC_ABS		0xED
-#define OPCODE_SBC_ABS_X		0xFD
-#define OPCODE_SBC_ABS_Y		0xF9
-#define OPCODE_SBC_IND_X		0xE1
-#define OPCODE_SBC_IND_Y		0xF1
+#define OPCODE_SBC_ABS_X	0xFD
+#define OPCODE_SBC_ABS_Y	0xF9
+#define OPCODE_SBC_IND_X	0xE1
+#define OPCODE_SBC_IND_Y	0xF1
 
 #define OPCODE_STA_ZERO		0x85
-#define OPCODE_STA_ZERO_X		0x95
+#define OPCODE_STA_ZERO_X	0x95
 #define OPCODE_STA_ABS		0x8D
-#define OPCODE_STA_ABS_X		0x9D
-#define OPCODE_STA_ABS_Y		0x99
-#define OPCODE_STA_IND_X		0x81
-#define OPCODE_STA_IND_Y		0x91
+#define OPCODE_STA_ABS_X	0x9D
+#define OPCODE_STA_ABS_Y	0x99
+#define OPCODE_STA_IND_X	0x81
+#define OPCODE_STA_IND_Y	0x91
              
 
 // Stack Instructions
@@ -179,11 +187,11 @@
 #define OPCODE_PLP		0x28
 
 #define OPCODE_STX_ZERO		0x86
-#define OPCODE_STX_ZERO_Y		0x96
+#define OPCODE_STX_ZERO_Y	0x96
 #define OPCODE_STX_ABS		0x8E  
 
 #define OPCODE_STY_ZERO		0x84
-#define OPCODE_STY_ZERO_X		0x94
+#define OPCODE_STY_ZERO_X	0x94
 #define OPCODE_STY_ABS		0x8C
 
 #define SIGN_MASK (1<<7)
@@ -193,14 +201,14 @@
 #define FLAG_CARRY_CLEAR(a) (a &= ~FLAG_CARRY_MASK)
 #define FLAG_CARRY_SET(a) (a |= FLAG_CARRY_MASK)
 #define SETCARRY(a) ((a>255)?					\
-		     FLAG_CARRY_SET(processor->regs.flags):	\
-		     FLAG_CARRY_CLEAR(processor->regs.flags))
+		     FLAG_CARRY_SET(REG_ST):	\
+		     FLAG_CARRY_CLEAR(REG_ST))
 
 #define FLAG_ZERO_MASK (1 << 1)
 #define FLAG_ZERO(a) (FLAG_ZERO_MASK & a)
 #define FLAG_ZERO_CLEAR(a) (a &= ~FLAG_ZERO_MASK)
 #define FLAG_ZERO_SET(a) (a |= FLAG_ZERO_MASK)
-#define SETZERO(a) (processor->regs.flags = (processor->regs.flags & \
+#define SETZERO(a) (REG_ST = (REG_ST & \
 		    (~FLAG_ZERO_MASK)) | ((!a) << 1))
 
 #define FLAG_INTERRUPT_MASK (1 << 2)
@@ -222,8 +230,8 @@
 #define FLAG_OVER(a) (FLAG_OVER_MASK & a)
 #define FLAG_OVER_CLEAR(a) (a &= ~FLAG_OVER_MASK)
 #define FLAG_OVER_SET(a) (a |= FLAG_OVER_MASK)
-#define SETOVER(a,b,c) (processor->regs.flags = (processor->regs.flags & \
-						 (~FLAG_OVER_MASK)) |	\
+#define SETOVER(a,b,c) (REG_ST = (REG_ST &			\
+				  (~FLAG_OVER_MASK)) |		\
 			((~(a ^ b))&(a ^ c)&SIGN_MASK)>>1)
 
 #define FLAG_NEG_MASK (1 << 7)
@@ -231,7 +239,7 @@
 #define FLAG_NEG_CLEAR(a) (a &= ~FLAG_NEG_MASK)
 #define FLAG_NEG_SET(a) (a |= FLAG_NEG_MASK)
 
-#define SETSIGN(a) (processor->regs.flags = (processor->regs.flags & \
+#define SETSIGN(a) (REG_ST = (REG_ST & \
 		    (~FLAG_NEG_MASK)) | ((a) & SIGN_MASK))
 
 #define NMI_VECTOR_ADDR 0xFFFA
@@ -242,12 +250,6 @@
 #define STACK_MASK 0x100
 
 
-#define REG_A processor->regs.accumulator
-#define REG_X processor->regs.x
-#define REG_Y processor->regs.y
-#define REG_SP processor->regs.sp
-#define REG_PC processor->regs.pc
-#define REG_ST processor->regs.flags
 
 
 typedef struct _Cpu{

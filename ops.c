@@ -71,9 +71,8 @@ bit(BYTE arg1, BYTE arg2)
   result = arg1 & arg2;
   
   SETZERO(result);
-
-  processor->regs.flags |= (result & FLAG_OVER_MASK);
-  processor->regs.flags |= (result & FLAG_NEG_MASK);
+  REG_ST = ((REG_ST & ~FLAG_OVER_MASK) | FLAG_OVER(result));
+  REG_ST = ((REG_ST & ~FLAG_NEG_MASK) | FLAG_NEG(result));
 
 }
 
@@ -95,9 +94,9 @@ cmp(BYTE arg1, BYTE arg2)
   SETZERO(result);
 
   if(arg1<arg2)
-    FLAG_CARRY_CLEAR(processor->regs.flags);
+    FLAG_CARRY_CLEAR(REG_ST);
   else
-    FLAG_CARRY_SET(processor->regs.flags);
+    FLAG_CARRY_SET(REG_ST);
 }
 
 void

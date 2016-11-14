@@ -311,7 +311,7 @@ CpuCycle(){
 
     OPPRINTF("ASL $%.2x,X\n", addr);
 
-    MemorySetByteAt(addr, asl(arg1));
+    MemorySetByteAt(write_addr, asl(arg1));
 
     REG_PC += 2;
     cycles = 6;
@@ -333,13 +333,12 @@ CpuCycle(){
       
   case OPCODE_ASL_ABS_X:
     
-    arg1 = getAbsoluteX(REG_PC+1, &addr, NULL);
+    arg1 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
 
     OPPRINTF("ASL $%.4x,X\n", addr);
     
     // write back to memory
-    MemorySetByteAt(addr, asl(arg1));
-
+    MemorySetByteAt(write_addr, asl(arg1));
 
     // advance pc
     REG_PC += 3;
@@ -351,6 +350,7 @@ CpuCycle(){
     
     OPPRINTF("BIT $%.2x\n", addr);
 
+    // No return, just sets flags
     bit(arg1, arg2);
 
     REG_PC += 2;
@@ -360,6 +360,8 @@ CpuCycle(){
   case OPCODE_BIT_ABS:
     arg1 = REG_A;
     arg2 = getAbsolute(REG_PC+1, &addr);
+
+    // No return, just sets flags
     bit(arg1, arg2);
 
     OPPRINTF("BIT $%.4x\n", addr);

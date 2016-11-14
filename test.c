@@ -11,7 +11,7 @@
 #include <assert.h>
 #include "defs.h"
 #define SIGN_MASK (1<<7)
-#define SETOVER(a,b,c) (((~(a ^ b))&(a ^ c)&SIGN_MASK)>1)
+#define SETOVER(a,b,c) (((~(a ^ b))&(a ^ c)&SIGN_MASK)>>1)
 
 BYTE
 sbc(BYTE arg1, BYTE arg2, BYTE *carry, BYTE *overflow, BYTE *sign, BYTE *zero)
@@ -218,7 +218,7 @@ M7 N7 C6 C7 B S7 V Borrow / Overflow	                        Hex	        Unsigne
       /* //carry = result>255?0:1; */
       /* carry = ~result>255?1:0; */
       
-      printf("arg1: %#x, %u, arg2: %#x, %u, result: %#x, %u, carry: %u, overflow: %u, sign %u, zero %u\n",
+      printf("arg1: %#x, %u, arg2: %#x, %u, result: %#x, %u, carry: %u, overflow: %#x, sign %u, zero %u\n",
 	     arg1, arg1, arg2, arg2, (unsigned char)result, (unsigned char) result, carry, overflow, sign, zero);
       
     }
