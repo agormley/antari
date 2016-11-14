@@ -13,6 +13,31 @@
 #define SIGN_MASK (1<<7)
 #define SETOVER(a,b,c) (((~(a ^ b))&(a ^ c)&SIGN_MASK)>>1)
 
+#define BYTE unsigned char
+void
+cmp(BYTE arg1, BYTE arg2, BYTE *carry, BYTE *sign, BYTE *zero)
+{
+  BYTE result = 0;
+  if(arg1<arg2)
+      *carry = 0 ;
+  else
+      *carry = 1 ;
+  
+  
+  // Get its twos compliment
+  // Negate the bits
+  arg2 = ~arg2;
+  arg2++;
+
+  // Subraction of two's comp is really just an add.
+  result = arg1 + arg2;
+
+  *sign = (result & SIGN_MASK);
+  *zero = !result;
+
+}
+
+
 BYTE
 sbc(BYTE arg1, BYTE arg2, BYTE *carry, BYTE *overflow, BYTE *sign, BYTE *zero)
 {
@@ -166,6 +191,7 @@ int TimerUnitTests()
 int main(int argc, char *argv[])
 {
   int i;
+  int j;
   BYTE hm = 0;
 
   TimerUnitTests();
@@ -222,5 +248,18 @@ M7 N7 C6 C7 B S7 V Borrow / Overflow	                        Hex	        Unsigne
 	     arg1, arg1, arg2, arg2, (unsigned char)result, (unsigned char) result, carry, overflow, sign, zero);
       
     }
+
+  for(arg1 = 0; arg1 < 255; arg1++)
+    {
+	for (arg2 = 0; arg2 < 255; arg2++)
+	{
+	    cmp(arg1, arg2, &carry, &sign, &zero);
+	    
+	    printf("CMP arg1: %#x, %u, arg2: %#x, %u, carry: %u, sign %u, zero %u\n",
+		               arg1, arg1,   arg2, arg2,     carry,    sign,   zero);
+	}
+      
+    }
+
   return 0;
 }

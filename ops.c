@@ -80,8 +80,12 @@ void
 cmp(BYTE arg1, BYTE arg2)
 {
   BYTE result = 0;
-  
-  
+
+  if(arg1<arg2)
+    FLAG_CARRY_CLEAR(REG_ST);
+  else
+    FLAG_CARRY_SET(REG_ST);
+
   // Get its twos compliment
   // Negate the bits
   arg2 = ~arg2;
@@ -93,10 +97,6 @@ cmp(BYTE arg1, BYTE arg2)
   SETSIGN(result);
   SETZERO(result);
 
-  if(arg1<arg2)
-    FLAG_CARRY_CLEAR(REG_ST);
-  else
-    FLAG_CARRY_SET(REG_ST);
 }
 
 void
