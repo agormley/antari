@@ -908,7 +908,7 @@ CpuCycle(){
   case OPCODE_INC_ZERO_X:
     arg1 = getZeroX(REG_PC+1, &addr, &write_addr);
  
-    inc(arg1, addr);
+    inc(arg1, write_addr);
 
     OPPRINTF("INC $%.2x,X\n", addr);
 
@@ -929,9 +929,9 @@ CpuCycle(){
     break;
 
   case OPCODE_INC_ABS_X:
-    arg1 = getAbsoluteX(REG_PC+1, &addr, NULL);
+    arg1 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
  
-    inc(arg1, addr);
+    inc(arg1, write_addr);
 
     OPPRINTF("INC $%.4x,X\n", addr);
 

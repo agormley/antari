@@ -125,6 +125,7 @@ eor(BYTE arg1, BYTE arg2)
 void
 inc(BYTE val, ushort addr)
 {
+  // DO I INCREMENT ACCUMULATOR IN SOME CASES TOO???
   val++;
   MemorySetByteAt(addr, val);
   SETSIGN(val);
