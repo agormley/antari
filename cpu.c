@@ -19,8 +19,8 @@ void StackPushShort(ushort bytes){
   memmap->memory[( STACK_MASK | --REG_SP)] = ((char*)&bytes)[0];
 }
 
-#define OPPRINTF(...) printf(__VA_ARGS__)
-//#define OPPRINTF(...) 
+// #define OPPRINTF(...) printf(__VA_ARGS__)
+#define OPPRINTF(...) 
 
 int
 CpuCycle(){
@@ -46,9 +46,9 @@ CpuCycle(){
 
   opcode = MemoryGetByteAt(REG_PC);
     
-  // printf("PC: %#x\n", REG_PC);
+  OPPRINTF("%#x: ", REG_PC);
   //    printf("OPCODE:%#x\n", opcode);
-  OPPRINTF("row %d, column %d\n", tia->row, tia->column);
+  //  OPPRINTF("row %d, column %d\n", tia->row, tia->column);
   
   switch(opcode){
   case OPCODE_ADC_IMM:
@@ -371,7 +371,8 @@ CpuCycle(){
     break;
 
   case OPCODE_BPL:
-    OPPRINTF("BPL\n");
+    OPPRINTF("BPL %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
 
     cycles = 2;
     // Note address if branch not taken
@@ -388,7 +389,8 @@ CpuCycle(){
     REG_PC += 2;					    
     break;
   case OPCODE_BMI:
-    OPPRINTF("BMI\n");
+    OPPRINTF("BMI %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
     cycles = 2;
 
     addr = REG_PC + 2;
@@ -404,7 +406,8 @@ CpuCycle(){
     REG_PC += 2;					    
     break;
   case OPCODE_BVC:
-    OPPRINTF("BVC\n");
+    OPPRINTF("BVC %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
     cycles = 2;
     // Note address if branch not taken
     addr = REG_PC + 2;
@@ -420,7 +423,8 @@ CpuCycle(){
     REG_PC += 2;					    
     break;
   case OPCODE_BVS:
-    OPPRINTF("BVS\n");
+    OPPRINTF("BVS %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
     cycles = 2;
     // Note address if branch not taken
     addr = REG_PC + 2;
@@ -436,7 +440,8 @@ CpuCycle(){
     REG_PC += 2;					    
     break;
   case OPCODE_BCC:
-    OPPRINTF("BCC\n");
+    OPPRINTF("BCC %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
     cycles = 2;
     // Note address if branch not taken
     addr = REG_PC + 2;
@@ -453,7 +458,8 @@ CpuCycle(){
     REG_PC += 2;					    
     break;
   case OPCODE_BCS:
-    OPPRINTF("BCS\n");
+    OPPRINTF("BCS %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
     cycles = 2;
     // Note address if branch not taken
     addr = REG_PC + 2;
@@ -470,9 +476,8 @@ CpuCycle(){
     break;
   case OPCODE_BNE:
 
-    OPPRINTF("BNE %.4x\n",
-	     REG_PC +
-	     (signed char)(MemoryGetByteAt(REG_PC + 1)));
+    OPPRINTF("BNE %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
 
     cycles = 2;
     // Note address if branch not taken
@@ -489,7 +494,8 @@ CpuCycle(){
     REG_PC += 2;					    
     break;
   case OPCODE_BEQ:
-    OPPRINTF("BEQ\n");
+    OPPRINTF("BEQ %#.4x\n",
+	     REG_PC + (signed char)(MemoryGetByteAt(REG_PC + 1)) + 2);
     cycles = 2;
     // Note address if branch not taken
     addr = REG_PC + 2;
@@ -1183,7 +1189,7 @@ CpuCycle(){
 
     lsr(&arg2);
 
-    MemorySetByteAt(addr, arg2);
+    MemorySetByteAt(write_addr, arg2);
 
 
     OPPRINTF("LSR $%.2x,X\n", addr);
@@ -1211,11 +1217,11 @@ CpuCycle(){
     break;
       
   case OPCODE_LSR_ABS_X:
-    arg2 = getAbsoluteX(REG_PC+1, &addr, NULL);
+    arg2 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
 
     lsr(&arg2);
 
-    MemorySetByteAt(addr, arg2);
+    MemorySetByteAt(write_addr, arg2);
 
     OPPRINTF("LSR $%.4x,X\n", addr);
 
@@ -1436,7 +1442,7 @@ CpuCycle(){
     rol(&arg2);
 
     // write back value
-    MemorySetByteAt(addr, arg2);
+    MemorySetByteAt(write_addr, arg2);
 
     // increment pc
     REG_PC += 2;
@@ -1461,12 +1467,12 @@ CpuCycle(){
     break;
 
   case OPCODE_ROL_ABS_X:
-    arg2 = getAbsoluteX(REG_PC+1, &addr, NULL);
+    arg2 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
 
     rol(&arg2);
 
     // write back value
-    MemorySetByteAt(addr, arg2);
+    MemorySetByteAt(write_addr, arg2);
 
     OPPRINTF("ROL $%.4x,X\n", addr);
 
@@ -1508,7 +1514,7 @@ CpuCycle(){
     ror(&arg2);
 
     // write back value
-    MemorySetByteAt(addr, arg2);
+    MemorySetByteAt(write_addr, arg2);
 
     OPPRINTF("ROR $%.2x,X\n", addr);
 
@@ -1534,12 +1540,12 @@ CpuCycle(){
     break;
 
   case OPCODE_ROR_ABS_X:
-    arg2 = getAbsoluteX(REG_PC+1, &addr, NULL);
+    arg2 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
 
     ror(&arg2);
 
     // write back value
-    MemorySetByteAt(addr, arg2);
+    MemorySetByteAt(write_addr, arg2);
 
     OPPRINTF("ROR $%.4x,X\n", addr);
 
