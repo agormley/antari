@@ -24,13 +24,6 @@ MemoryGetByteAt(unsigned short addr)
   unsigned char byte = 0;
   ushort addr1 = (addr & MEMORY_MASK);
 
-  if (addr == 0xfe02 || addr == 0xfe03 || addr == 0xfe04)
-    printf("getting number posistion\n");
-  if (addr >= 280  && addr < 299)
-    printf("Getting PIA addr %#x\n", addr);
-
-  /* if (addr >= 0  && addr < 45) */
-  /*   printf("Getting TIA addr %#x\n", addr); */
   switch(addr){
     //clear button presses on read.
   case SWCHB:
@@ -58,7 +51,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     addr1 = (addr & MEMORY_MASK);
   
   //  if (addr1 >= TIA_WRITE_PF0  && addr <= TIA_WRITE_PF2)
-  LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
+//  LOG("addr: %#4x, byte: %#x, row %d, column %d", addr1, byte, tia->row, tia->column);
 
   // check strobe registers
   // please put vars inside a struct, preferabl tia
@@ -71,27 +64,38 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     break;
   case TIA_WRITE_RESP0:
     printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
+    tia->player0->pixBit = 0;
+    tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
 
     tia->player0->reset = true;
     break;
   case TIA_WRITE_RESP1:
     printf("%s: reset p1 %d\n", __FUNCTION__, tia->column);
+    tia->player1->pixBit = 0;
+    tia->player1->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
 
     tia->player1->reset = true;
     break;
   case TIA_WRITE_RESM0:
     printf("%s: reset m0 %d \n", __FUNCTION__, tia->column);
 
+    tia->missile0->pixBit = 0;
+    tia->missile0->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;
     tia->missile0->reset = true;
+    
     break;
   case TIA_WRITE_RESM1:
     printf("%s: reset m1 %d \n", __FUNCTION__, tia->column);
-
-    tia->missile0->reset = true;
+    tia->missile1->pixBit = 0;
+    tia->missile1->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;
+    tia->missile1->reset = true;
+   
     break;
   case TIA_WRITE_RESBL:
     printf("%s: reset ball %d\n", __FUNCTION__, tia->column);
-
+     tia->ball->pixBit = 0;
+     tia->ball->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
+ 
     tia->ball->reset = true;
     break;
  

@@ -39,11 +39,11 @@ StellaProcessEvent(SDL_Event event){
       pia->color = pia->color?false:true;
       break;
     case SDLK_F4:
-      pia->p0difficulty = true;
-      break;
+	pia->p0difficulty = pia->p0difficulty?false:true;
+	break;
     case SDLK_F5:
-      pia->p1difficulty = true;
-      break;
+	pia->p1difficulty = pia->p1difficulty?false:true;
+	break;
     case SDLK_LEFT:
       pia->p0left = true;
       break;
@@ -75,6 +75,22 @@ StellaProcessEvent(SDL_Event event){
     case SDLK_F2:
       pia->game_reset = false;
       break;
+    case SDLK_LEFT:
+      pia->p0left = false;
+      break;
+    case SDLK_RIGHT:
+      pia->p0right = false;
+      break;
+    case SDLK_UP:
+      pia->p0up = false;
+      break;
+    case SDLK_DOWN:
+      pia->p0down = false;
+      break;
+    case SDLK_SPACE:
+      pia->p0button = false;
+      break;
+
     }
     break;
   default:

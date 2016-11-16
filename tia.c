@@ -144,8 +144,6 @@ getSpritePixels(int row,
   // player 0
   if(tia->player0->reset) {
     tia->player0->reset = false;
-    tia->player0->pixBit = 0;
-    tia->player0->clkStart = column;
 
   }
   else {
@@ -181,8 +179,6 @@ getSpritePixels(int row,
 
   // player 1
   if(tia->player1->reset){
-      tia->player1->pixBit = 0;
-      tia->player1->clkStart = column;
       tia->player1->reset = false;
 
   } else {
@@ -216,8 +212,6 @@ getSpritePixels(int row,
 
   // ball
   if(tia->ball->reset){
-      tia->ball->pixBit = 0;
-      tia->ball->clkStart = column;
       tia->ball->reset = false;
 
   } else if (tia->ball->enabled) {
@@ -255,9 +249,7 @@ getSpritePixels(int row,
   // missile 0
   if(tia->missile0->reset) {
     tia->missile0->reset = false;
-    tia->missile0->pixBit = 0;
-    tia->missile0->clkStart = column;
-
+  
   }
   else if(tia->missile0->enabled) {
     if( tia->missile0->clkStart == column){
@@ -305,12 +297,11 @@ getSpritePixels(int row,
 
    */  
   // missile 1
-  if(tia->missile1->reset){
-      tia->missile1->pixBit = 0;
-      tia->missile1->clkStart = column;
-      tia->missile1->reset = false;
-
-  } else if (tia->missile1->enabled) {
+  if(tia->missile1->reset) {
+    tia->missile1->reset = false;
+  
+  }
+  else  if (tia->missile1->enabled) {
     if(tia->missile1->clkStart == column){
       tia->missile1->pixBit = 0;
       tia->missile1->clkStart = column;
