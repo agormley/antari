@@ -19,8 +19,8 @@ void StackPushShort(ushort bytes){
   memmap->memory[( STACK_MASK | --REG_SP)] = ((char*)&bytes)[0];
 }
 
-// #define OPPRINTF(...) printf(__VA_ARGS__)
-#define OPPRINTF(...) 
+#define OPPRINTF(...) printf(__VA_ARGS__)
+//#define OPPRINTF(...) 
 
 int
 CpuCycle(){
@@ -293,7 +293,7 @@ CpuCycle(){
     REG_PC += 1;
     cycles = 2;
     break;
-
+  case 0x6:
   case OPCODE_ASL_ZERO:
     
     arg1 = getZero(REG_PC+1, &addr);
@@ -1826,7 +1826,7 @@ CpuCycle(){
 
     stx(write_addr);
 
-    OPPRINTF("STX $%.4x\n", addr);
+    OPPRINTF("STX $%.4x\n", write_addr);
 
     REG_PC = REG_PC+3;
     cycles = 4;
@@ -1855,16 +1855,17 @@ CpuCycle(){
 
     break;
   case OPCODE_STY_ABS:
-    getZeroX(REG_PC+1, &addr, &write_addr);
+    getAbsolute(REG_PC+1, &write_addr);
 
     sty(write_addr);
 
-    OPPRINTF("STY $%.4x\n", addr);
+    OPPRINTF("STY $%.4x\n", write_addr);
 
     REG_PC = REG_PC+3;
     cycles = 4;
 	    
     break;
+  case 0x80:
   case 0x0C:
   case 0x1C:
   case 0x3C:
@@ -1914,14 +1915,17 @@ CpuCreate()
 void
 CpuPrintRegs()
 {
-  printf("A: %.2x\n"
-	 "X: %.2x\n"
-	 "Y: %.2x\n"
-	 "Flags: %.2x\n"
-	 "Stack: %.2x\n",
+  printf("A: %#.2x\n"
+	 "X: %#.2x\n"
+	 "Y: %#.2x\n"
+	 "Flags: %#.2x\n"
+	 "Stack: %#.2x\n"
+	 "PC: %#.2x\n",
+
 	 REG_A,
 	 REG_X,
 	 REG_Y,
 	 REG_ST,
-	 REG_SP);
+	 REG_SP,
+	 REG_PC);
 }

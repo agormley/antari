@@ -77,7 +77,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     tia->player1->reset = true;
     break;
   case TIA_WRITE_RESM0:
-    printf("%s: reset m0 %d \n", __FUNCTION__, tia->column);
+    //printf("%s: reset m0 %d \n", __FUNCTION__, tia->column);
 
     tia->missile0->pixBit = 0;
     tia->missile0->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;
