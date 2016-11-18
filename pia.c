@@ -44,30 +44,33 @@ PiaWriteRegs(){
   memmap->memory[SWCHB] = byte;
 
   byte = 0;
-  if(pia->p0left){
+  if(!pia->p0left){
     byte |= 1 << 6;
     pia->p0left = false;
   }
-  if(pia->p0right){
+  if(!pia->p0right){
     byte |= 1 << 7;
     pia->p0right = false;
   }
-  if(pia->p0up){
+  if(!pia->p0up){
     byte |= 1 << 4;
     pia->p0up = false;
   }
-  if(pia->p0down){
+  if(!pia->p0down){
     byte |= 1 << 5;
     pia->p0down = false;
   }
 
   memmap->memory[SWCHA] = byte;
   
-  if(pia->p0button){
+  if(!pia->p0button){
     memmap->tia_read[TIA_READ_INPT4] = 1 << 7;
     pia->p0button = false;
   }
-   
+  else{
+    memmap->tia_read[TIA_READ_INPT4] = 0;
+  }
+  
   return 0;
 }
 int

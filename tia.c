@@ -613,7 +613,7 @@ TiaPlayField(int row, int column){
     break;
   }
 
-/*
+
   // collisions
   MEM_RD(TIA_READ_CXM0P) |= ((hasM0 & hasP1) << 7); 
   MEM_RD(TIA_READ_CXM0P) |= ((hasM0 & hasP0) << 6); 
@@ -637,7 +637,7 @@ TiaPlayField(int row, int column){
 
   MEM_RD(TIA_READ_CXPPMM) |= ((hasP0 & hasP1) << 7); 
   MEM_RD(TIA_READ_CXPPMM) |= ((hasM1 & hasM0) << 6); 
-*/
+
   // fix this. assign based on priority
   framebuffer[row_adj][col_adj] = hasP0?p0_pixel:hasP1?
       p1_pixel:hasB?b_pixel:hasM0?m0_pixel:hasM1?m1_pixel:
