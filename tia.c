@@ -130,15 +130,29 @@ getSpritePixels(int row,
   // is this the right place for horizontal motion?
   if(tia->hMotionPending){
     tia->hMotionPending = false;
-    tia->player0->clkStart += tia->player0->hMotion;
+
+    tia->player0->clkStart -= tia->player0->hMotion;
     if(tia->player0->clkStart < 0)
       tia->player0->clkStart = 0;
 
-
-    tia->player1->clkStart += tia->player1->hMotion;
+    tia->player1->clkStart -= tia->player1->hMotion;
     if(tia->player1->clkStart < 0)
       tia->player1->clkStart = 0;
 
+    tia->missile0->clkStart -= tia->missile0->hMotion;
+    if(tia->missile0->clkStart < 0)
+      tia->missile0->clkStart = 0;
+
+    tia->missile1->clkStart -= tia->missile1->hMotion;
+    if(tia->missile1->clkStart < 0)
+      tia->missile1->clkStart = 0;
+
+    tia->ball->clkStart -= tia->ball->hMotion;
+    if(tia->ball->clkStart < 0)
+      tia->ball->clkStart = 0;
+
+
+    
   }
   
   // player 0
@@ -182,10 +196,10 @@ getSpritePixels(int row,
       tia->player1->reset = false;
 
   } else {
-    if(tia->player1->clkStart == column){
-      tia->player1->pixBit = 0;
-      tia->player1->clkStart = column;
-    }
+      if(tia->player1->clkStart == column){ // or matches 
+	  tia->player1->pixBit = 0;
+	  tia->player1->clkStart = column;
+      }
   
     if (tia->player1->pixBit < 0 ) {
       *hasP1 = false;
@@ -219,30 +233,20 @@ getSpritePixels(int row,
       tia->ball->pixBit = 0;
     }
   
-    if (tia->ball->pixBit < 0 ) {
-      *hasB = false;
-      // could set the alpha?
-      *bPixel = 0;
-    } else {
-      if (tia->ball->pixBit < tia->ball->width){
+    if (tia->ball->pixBit != -1 &&
+	tia->ball->pixBit < tia->ball->width){
 	*hasB = true;
 	// could set the alpha?
 	*bPixel = ball_pixel;
-      
-      }
-      else {
+	tia->ball->pixBit++;      
+    }
+    else {
 	*hasB = false;
 	// could set the alpha?
 	*bPixel = 0;
-      
-      }
-      if(tia->ball->pixBit>=tia->ball->width)
-	tia->ball->pixBit = -1;
-      else
-	tia->ball->pixBit++;
+	tia->ball->pixBit = -1;      
     }
   }
-
 
   // missiles
   
@@ -587,9 +591,35 @@ TiaPlayField(int row, int column){
     break;
   }
 
+
+  // collisions
+  MEM_RD(TIA_READ_CXM0P) |= ((hasM0 & hasP1) << 7); 
+  MEM_RD(TIA_READ_CXM0P) |= ((hasM0 & hasP0) << 6); 
+
+  MEM_RD(TIA_READ_CXM1P) |= ((hasM1 & hasP0) << 7); 
+  MEM_RD(TIA_READ_CXM1P) |= ((hasM1 & hasP1) << 6); 
+
+  MEM_RD(TIA_READ_CXP0FB) |= ((hasP0 & hasPf) << 7); 
+  MEM_RD(TIA_READ_CXP0FB) |= ((hasP0 & hasB) << 6); 
+
+  MEM_RD(TIA_READ_CXP1FB) |= ((hasP1 & hasPf) << 7); 
+  MEM_RD(TIA_READ_CXP1FB) |= ((hasP1 & hasB) << 6); 
   
+  MEM_RD(TIA_READ_CXM0FB) |= ((hasM0 & hasPf) << 7); 
+  MEM_RD(TIA_READ_CXM0FB) |= ((hasM0 & hasB) << 6); 
+
+  MEM_RD(TIA_READ_CXM1FB) |= ((hasM1 & hasPf) << 7); 
+  MEM_RD(TIA_READ_CXM1FB) |= ((hasM1 & hasB) << 6); 
+
+  MEM_RD(TIA_READ_CXBLPF) |= ((hasB & hasPf) << 7); 
+
+  MEM_RD(TIA_READ_CXPPMM) |= ((hasP0 & hasP1) << 7); 
+  MEM_RD(TIA_READ_CXPPMM) |= ((hasM1 & hasM0) << 6); 
+
+  // fix this. assign based on priority
   framebuffer[row_adj][col_adj] = hasP0?p0_pixel:hasP1?
-    p1_pixel:hasB?b_pixel:hasPf?pf_pixel:bk_pixel;
+      p1_pixel:hasB?b_pixel:hasM0?m0_pixel:hasM1?m1_pixel:
+      hasPf?pf_pixel:bk_pixel;
 
   //  assert( framebuffer[ 192/2][75] == 0);
   
@@ -675,6 +705,13 @@ int TiaReadRegs()
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP0]);
   tia->player1->hMotion =
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMP1]);
+  tia->ball->hMotion =
+    TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMBL]);
+  tia->missile0->hMotion =
+    TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMM0]);
+  tia->missile1->hMotion =
+    TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMM1]);
+
 
   return 0;
 }

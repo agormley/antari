@@ -230,7 +230,8 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 #define  PF0 (memmap->tia_write[TIA_WRITE_PF0])
 #define  PF1 (memmap->tia_write[TIA_WRITE_PF1])
 #define  PF2 (memmap->tia_write[TIA_WRITE_PF2])
-
+#define MEM_WR(a) (memmap->tia_write[a])
+#define MEM_RD(a) (memmap->tia_read[a])
 #define CLOCK_COUNTS 228
 #define SCAN_LINES 262
 #define FRAME_CLOCK_COUNTS 160

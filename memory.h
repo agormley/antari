@@ -1,4 +1,3 @@
-#define ROM_SIZE 4096
 typedef struct _memory_map
 {
   // atari only uses 8192!!
@@ -28,8 +27,11 @@ typedef struct _memory_map
 unsigned short
 MemoryGetTwoBytesAt(unsigned short addr);
 
-void MemoryCreate();
+void
+MemoryCreate();
+
 unsigned char
 MemoryGetByteAt(unsigned short addr);
+
 void
 MemorySetByteAt(unsigned short addr, unsigned char byte);

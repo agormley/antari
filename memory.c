@@ -107,8 +107,24 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
 
     break;
   case TIA_WRITE_CXCLR:
+      
+      MEM_RD(TIA_READ_CXM0P) = 0; 
+      
+      MEM_RD(TIA_READ_CXM1P) = 0;
 
-    break;
+      MEM_RD(TIA_READ_CXP0FB) = 0;
+
+      MEM_RD(TIA_READ_CXP1FB) = 0;
+  
+      MEM_RD(TIA_READ_CXM0FB) = 0;
+
+      MEM_RD(TIA_READ_CXM1FB) = 0;
+
+      MEM_RD(TIA_READ_CXBLPF) = 0;
+
+      MEM_RD(TIA_READ_CXPPMM) = 0;
+
+      break;
   case TIM1T:
     pia->timer_pending = true;
     pia->timer_interval = 1;
