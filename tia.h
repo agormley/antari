@@ -247,17 +247,41 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 //extern Uint32 framebuffer[STELLA_VERTICAL_CLOCK_COUNTS][STELLA_HORIZONTAL_LINES];
 extern Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 
+#define ONE_COPY 0
+#define TWO_COPIES_CLOSE 1
+#define TWO_COPIES_MID 2
+#define THREE_COPIES_CLOSE 3
+#define TWO_COPIES_FAR 4
+#define ONE_COPY_DOUBLE 5
+#define THREE_COPIES_MID 6
+#define ONE_COPY_QUAD 7
+
+
+/*
+D2 D1 D0 1/2 television line (80 clocks) 8 clocks per square Description
+0  0  0  X 	  	  	  	  	  	  	  	  one copy
+0  0  1  X 	  	X 	  	  	  	  	  	  two copies - close
+0  1  0  X 	  	  	  	X 	  	  	  	  two copies - med
+0  1  1  X 	  	X 	  	X 	  	  	  	  three copies - close
+1  0  0  X 	  	  	  	  	  	  	  	X two copies - wide
+1  0  1  X 	X 	  	  	  	  	  	  	  double size player
+1  1  0  X 	  	  	  	X 	  	  	  	X 3 copies medium
+1  1  1  X 	X 	X 	X 	  	  	  	  	  quad sized 
+ */
+
 typedef struct _sprite
 {
-  int color;
-  int lum;
-  int pixBit;
-  int clkStart;
-  int hMotion;
-  int width;
-  bool enabled;
-  bool reset;
-  bool reflect;
+    int color;
+    int lum;
+    int pixBit;
+    int clkStart;
+    int hMotion;
+    int width;
+    int copies;
+    int space;
+    bool enabled;
+    bool reset;
+    bool reflect;
 }Sprite;
 
 typedef struct _playfield{

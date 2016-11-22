@@ -172,21 +172,35 @@ getSpritePixels(int row,
       *p0Pixel = 0;
     } else {
       // get p0 pixel!
-      if ( memmap->tia_write[TIA_WRITE_GRP0] &
-	   (1 << (7 - tia->player0->pixBit))){
-	*hasP0 = true;
-	// could set the alpha?
-	*p0Pixel = p0_pixel;
-    
-      }
-      else {
-	*hasP0 = false;
-	// could set the alpha?
-	*p0Pixel = 0;
-      
-      }
-      tia->player0->pixBit=tia->player0->pixBit==7?-1:
-	tia->player0->pixBit+1;
+	if(tia->player0->reflect){
+	    if ( memmap->tia_write[TIA_WRITE_GRP0] &
+		 (1 << (tia->player0->pixBit))){
+		*hasP0 = true;
+		// could set the alpha?
+		*p0Pixel = p0_pixel;
+		
+	    }	else {
+		*hasP0 = false;
+		// could set the alpha?
+		*p0Pixel = 0;
+	    }
+	    
+	}
+	else{
+	    if ( memmap->tia_write[TIA_WRITE_GRP0] &
+		 (1 << (7 - tia->player0->pixBit))){
+		*hasP0 = true;
+		// could set the alpha?
+		*p0Pixel = p0_pixel;
+		
+	    }	else {
+		*hasP0 = false;
+		// could set the alpha?
+		*p0Pixel = 0;
+	    }
+	}
+	tia->player0->pixBit=tia->player0->pixBit==7?-1:
+	    tia->player0->pixBit+1;
 
     }
   }
@@ -206,21 +220,28 @@ getSpritePixels(int row,
       // could set the alpha?
       *p1Pixel = 0;
     } else {
-      // get p1 pixel!
-      if ( memmap->tia_write[TIA_WRITE_GRP1] &
-	   (1 << (7 - tia->player1->pixBit))){
-	*hasP1 = true;
-	// could set the alpha?
-	*p1Pixel = p1_pixel;
-      
-      }
-      else {
-	*hasP1 = false;
-	// could set the alpha?
-	*p1Pixel = 0;
-      
-      }
-      tia->player1->pixBit=tia->player1->pixBit==7?-1:tia->player1->pixBit+1;
+	if(tia->player1->reflect &&
+	   memmap->tia_write[TIA_WRITE_GRP1] &
+	   (1 << (tia->player1->pixBit))){
+	    *hasP1 = true;
+	    // could set the alpha?
+	    *p1Pixel = p1_pixel;
+	    
+	}else if(!tia->player1->reflect &&
+		 memmap->tia_write[TIA_WRITE_GRP1] &
+		 (1 << (7 - tia->player1->pixBit))){
+	    *hasP1 = true;
+	    // could set the alpha?
+	    *p1Pixel = p1_pixel;
+	}
+	else {
+	    *hasP1 = false;
+	    // could set the alpha?
+	    *p1Pixel = 0;
+	    
+	}
+    
+	tia->player1->pixBit=tia->player1->pixBit==7?-1:tia->player1->pixBit+1;
     }
   }
 
@@ -591,7 +612,7 @@ TiaPlayField(int row, int column){
     break;
   }
 
-
+/*
   // collisions
   MEM_RD(TIA_READ_CXM0P) |= ((hasM0 & hasP1) << 7); 
   MEM_RD(TIA_READ_CXM0P) |= ((hasM0 & hasP0) << 6); 
@@ -615,7 +636,7 @@ TiaPlayField(int row, int column){
 
   MEM_RD(TIA_READ_CXPPMM) |= ((hasP0 & hasP1) << 7); 
   MEM_RD(TIA_READ_CXPPMM) |= ((hasM1 & hasM0) << 6); 
-
+*/
   // fix this. assign based on priority
   framebuffer[row_adj][col_adj] = hasP0?p0_pixel:hasP1?
       p1_pixel:hasB?b_pixel:hasM0?m0_pixel:hasM1?m1_pixel:
@@ -637,6 +658,53 @@ int TiaClearHMotion(){
   return 0;
 }
 
+void
+parsePlayerSize(int reg, Sprite* sp){
+  switch (MEM_WR(reg))
+  {
+  case ONE_COPY:
+      sp->copies = 1;
+      sp->width = 1;
+      sp->space = 1;
+      break;
+  case TWO_COPIES_CLOSE:
+      sp->copies = 2;
+      sp->width = 1;
+      sp->space = 2;
+      break;
+  case TWO_COPIES_MID:
+      sp->copies = 2;
+      sp->width = 1;
+      sp->space = 4;
+      break;
+  case THREE_COPIES_CLOSE:
+      sp->copies = 3;
+      sp->width = 1;
+      sp->space = 2;
+      break;
+  case TWO_COPIES_FAR:
+      sp->copies = 2;
+      sp->width = 1;
+      sp->space = 8;
+      break;
+  case ONE_COPY_DOUBLE:
+      sp->copies = 1;
+      sp->width = 2;
+      sp->space = 1;
+      break;
+  case THREE_COPIES_MID:
+      sp->copies = 3;
+      sp->width = 1;
+      sp->space = 4;
+      break;
+  case ONE_COPY_QUAD:
+      sp->copies = 1;
+      sp->width = 4;
+      sp->space = 1;
+      break;
+  }
+}
+
 int TiaReadRegs()
 {
   static bool vsync_on = false;
@@ -648,6 +716,9 @@ int TiaReadRegs()
   tia->missile1->width =
     1 << (memmap->tia_write[TIA_WRITE_NUSIZ1] >> 4 & (0x3));
 
+  parsePlayerSize(TIA_WRITE_NUSIZ0, tia->player0);
+  parsePlayerSize(TIA_WRITE_NUSIZ1, tia->player1);
+  
   if(memmap->tia_write[TIA_WRITE_ENAM0] & (1<<1)) {
     tia->missile0->enabled = true;
   }
