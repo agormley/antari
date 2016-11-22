@@ -208,41 +208,41 @@ getSpritePixels(int row,
   // player 1
   if(tia->player1->reset){
       tia->player1->reset = false;
-
+      
   } else {
       if(tia->player1->clkStart == column){ // or matches 
 	  tia->player1->pixBit = 0;
 	  tia->player1->clkStart = column;
       }
-  
-    if (tia->player1->pixBit < 0 ) {
-      *hasP1 = false;
-      // could set the alpha?
-      *p1Pixel = 0;
-    } else {
-	if(tia->player1->reflect &&
-	   memmap->tia_write[TIA_WRITE_GRP1] &
-	   (1 << (tia->player1->pixBit / tia->player1->width))){
-	    *hasP1 = true;
-	    // could set the alpha?
-	    *p1Pixel = p1_pixel;
-	    
-	} else if(!tia->player1->reflect &&
-		 memmap->tia_write[TIA_WRITE_GRP1] &
-		 (1 << (7 - tia->player1->pixBit / tia->player1->width))){
-	    *hasP1 = true;
-	    // could set the alpha?
-	    *p1Pixel = p1_pixel;
-	}
-	else {
-	    *hasP1 = false;
-	    // could set the alpha?
-	    *p1Pixel = 0;
-	    
-	}
-    
-	tia->player1->pixBit=(tia->player1->pixBit+1)/tia->player1->width>7?-1:tia->player1->pixBit+1;
-    }
+      
+      if (tia->player1->pixBit < 0 ) {
+	  *hasP1 = false;
+	  // could set the alpha?
+	  *p1Pixel = 0;
+      } else {
+	  if(tia->player1->reflect &&
+	     memmap->tia_write[TIA_WRITE_GRP1] &
+	     (1 << (tia->player1->pixBit / tia->player1->width))){
+	      *hasP1 = true;
+	      // could set the alpha?
+	      *p1Pixel = p1_pixel;
+	      
+	  } else if(!tia->player1->reflect &&
+		    memmap->tia_write[TIA_WRITE_GRP1] &
+		    (1 << (7 - tia->player1->pixBit / tia->player1->width))){
+	      *hasP1 = true;
+	      // could set the alpha?
+	      *p1Pixel = p1_pixel;
+	  }
+	  else {
+	      *hasP1 = false;
+	      // could set the alpha?
+	      *p1Pixel = 0;
+	      
+	  }
+	  
+	  tia->player1->pixBit=(tia->player1->pixBit+1)/tia->player1->width>7?-1:tia->player1->pixBit+1;
+      }
   }
 
   // ball
@@ -255,7 +255,8 @@ getSpritePixels(int row,
     }
   
     if (tia->ball->pixBit != -1 &&
-	tia->ball->pixBit < tia->ball->width){
+	tia->ball->pixBit < tia->ball->width &&
+	tia->ball->clkStart <= column){
 	*hasB = true;
 	// could set the alpha?
 	*bPixel = ball_pixel;
