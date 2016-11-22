@@ -199,7 +199,7 @@ getSpritePixels(int row,
 		*p0Pixel = 0;
 	    }
 	}
-	tia->player0->pixBit=tia->player0->pixBit+1/tia->player0->width>7?-1:
+	tia->player0->pixBit=(tia->player0->pixBit+1)/tia->player0->width>7?-1:
 	    tia->player0->pixBit+1;
 
     }
@@ -227,7 +227,7 @@ getSpritePixels(int row,
 	    // could set the alpha?
 	    *p1Pixel = p1_pixel;
 	    
-	}else if(!tia->player1->reflect &&
+	} else if(!tia->player1->reflect &&
 		 memmap->tia_write[TIA_WRITE_GRP1] &
 		 (1 << (7 - tia->player1->pixBit / tia->player1->width))){
 	    *hasP1 = true;
@@ -241,7 +241,7 @@ getSpritePixels(int row,
 	    
 	}
     
-	tia->player1->pixBit=tia->player1->pixBit+1/tia->player1->width>7?-1:tia->player1->pixBit+1;
+	tia->player1->pixBit=(tia->player1->pixBit+1)/tia->player1->width>7?-1:tia->player1->pixBit+1;
     }
   }
 
