@@ -174,7 +174,7 @@ getSpritePixels(int row,
       // get p0 pixel!
 	if(tia->player0->reflect){
 	    if ( memmap->tia_write[TIA_WRITE_GRP0] &
-		 (1 << (tia->player0->pixBit))){
+		 (1 << (tia->player0->pixBit / tia->player0->width))){
 		*hasP0 = true;
 		// could set the alpha?
 		*p0Pixel = p0_pixel;
@@ -188,7 +188,7 @@ getSpritePixels(int row,
 	}
 	else{
 	    if ( memmap->tia_write[TIA_WRITE_GRP0] &
-		 (1 << (7 - tia->player0->pixBit))){
+		 (1 << (7 - tia->player0->pixBit / tia->player0->width))){
 		*hasP0 = true;
 		// could set the alpha?
 		*p0Pixel = p0_pixel;
@@ -199,7 +199,7 @@ getSpritePixels(int row,
 		*p0Pixel = 0;
 	    }
 	}
-	tia->player0->pixBit=tia->player0->pixBit==7?-1:
+	tia->player0->pixBit=tia->player0->pixBit+1/tia->player0->width>7?-1:
 	    tia->player0->pixBit+1;
 
     }
@@ -222,14 +222,14 @@ getSpritePixels(int row,
     } else {
 	if(tia->player1->reflect &&
 	   memmap->tia_write[TIA_WRITE_GRP1] &
-	   (1 << (tia->player1->pixBit))){
+	   (1 << (tia->player1->pixBit / tia->player1->width))){
 	    *hasP1 = true;
 	    // could set the alpha?
 	    *p1Pixel = p1_pixel;
 	    
 	}else if(!tia->player1->reflect &&
 		 memmap->tia_write[TIA_WRITE_GRP1] &
-		 (1 << (7 - tia->player1->pixBit))){
+		 (1 << (7 - tia->player1->pixBit / tia->player1->width))){
 	    *hasP1 = true;
 	    // could set the alpha?
 	    *p1Pixel = p1_pixel;
@@ -241,7 +241,7 @@ getSpritePixels(int row,
 	    
 	}
     
-	tia->player1->pixBit=tia->player1->pixBit==7?-1:tia->player1->pixBit+1;
+	tia->player1->pixBit=tia->player1->pixBit+1/tia->player1->width>7?-1:tia->player1->pixBit+1;
     }
   }
 
@@ -660,7 +660,7 @@ int TiaClearHMotion(){
 
 void
 parsePlayerSize(int reg, Sprite* sp){
-  switch (MEM_WR(reg))
+  switch (MEM_WR(reg) & 7)
   {
   case ONE_COPY:
       sp->copies = 1;
@@ -818,11 +818,11 @@ TiaCreate()
   tia->player0 = calloc(1, sizeof(Sprite));
   assert(tia->player0);
   tia->player0->pixBit = -1;
-  
+  tia->player0->width = 1;
   tia->player1 = calloc(1, sizeof(Sprite));
   assert(tia->player1);
   tia->player1->pixBit = -1;
-
+  tia->player1->width = 1;
   tia->ball = calloc(1, sizeof(Sprite));
   assert(tia->ball);
   tia->ball->pixBit = -1;
