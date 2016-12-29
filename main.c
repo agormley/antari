@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
   RunProgram(stella);
 
-  atexit(cleanup);
+  atexit(SDL_Quit);
 
   /* Exit the program */
 
