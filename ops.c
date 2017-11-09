@@ -277,7 +277,6 @@ sbc(BYTE arg1, BYTE arg2, BYTE carry)
   }
   
   // Carry is reverse borrow.
-    // Carry is reverse borrow.
   if( arg1 < savedarg2 )
     FLAG_CARRY_CLEAR(REG_ST);
   else

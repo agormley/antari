@@ -13,7 +13,13 @@ typedef struct _memory_map
       unsigned char not_used2[128];
       unsigned char riot_io [24];  // 664 bytes?
       unsigned char not_used3[3432];
-      unsigned char rom[ROM_SIZE];
+      union {
+	unsigned char rom[ROM_SIZE];
+	struct{
+	  unsigned char rom2k1[ROM_SIZE_2K];
+	  unsigned char rom2k2[ROM_SIZE_2K];
+	};
+      };
       unsigned char not_used4[57344];
     };
   };

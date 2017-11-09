@@ -19,7 +19,7 @@ MemoryGetTwoBytesAt(unsigned short addr)
 unsigned char
 MemoryGetByteAt(unsigned short addr)
 {
-  assert(addr >= 0 && addr < 0x10000);
+  //  assert(addr >= 0 && addr < 0x10000);
   
   unsigned char byte = 0;
   ushort addr1 = (addr & MEMORY_MASK);
@@ -43,10 +43,11 @@ extern int size;
 void
 MemorySetByteAt(unsigned short addr, unsigned char byte)
 {
-  assert(addr >= 0 && addr < 0x10000);
+  //assert(addr >= 0 && addr < 0x10000);
   ushort addr1; 
-  if(size == 2048)
-    addr1 = (addr & 0xFFF);
+  if(size == 2048) {
+    addr1 = (addr & 0x7FF);
+  }
   else
     addr1 = (addr & MEMORY_MASK);
   
@@ -63,14 +64,14 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     printf("%s: rsync strobe not implemented\n", __FUNCTION__);
     break;
   case TIA_WRITE_RESP0:
-    printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
+    // printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
     tia->player0->pixBit = 0;
     tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
 
     tia->player0->reset = true;
     break;
   case TIA_WRITE_RESP1:
-    printf("%s: reset p1 %d\n", __FUNCTION__, tia->column);
+    // printf("%s: reset p1 %d\n", __FUNCTION__, tia->column);
     tia->player1->pixBit = 0;
     tia->player1->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
 
@@ -85,7 +86,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     
     break;
   case TIA_WRITE_RESM1:
-    printf("%s: reset m1 %d \n", __FUNCTION__, tia->column);
+    //  printf("%s: reset m1 %d \n", __FUNCTION__, tia->column);
     tia->missile1->pixBit = 0;
     tia->missile1->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;
     tia->missile1->reset = true;
@@ -158,3 +159,5 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   //TODO: check that addr is in range'
   memmap->memory[addr1] = byte ;
 }
+
+

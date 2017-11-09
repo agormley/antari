@@ -10,21 +10,44 @@ Uint32 framebuffer[FRAME_LINES][FRAME_CLOCK_COUNTS];
 int
 TiaConvertHmToInt(BYTE hm)
 {
-  int result = 0;
-  int sign = 0;
 
-  sign = hm & 0x80;
-  result = hm & 0x70;
-  result = result >> 4;
+  switch(hm & 0xF0) {
+  case 0x00:
+    return 0;
+  case 0x10:
+    return 1;
+  case 0x20:
+    return 2;
+  case 0x30:
+    return 3;
+  case 0x40:
+    return 4;
+  case 0x50:
+    return 5;
+  case 0x60:
+    return 6;
+  case 0x70:
+    return 7;
 
-  if(sign){
-    result++;
-
-    result = -result;
-
+  case 0x80:
+    return -8;
+  case 0x90:
+    return -7;
+  case 0xA0:
+    return -6;
+  case 0xB0:
+    return -5;
+  case 0xC0:
+    return -4;
+  case 0xD0:
+    return -3;
+  case 0xE0:
+    return -2;
+  case 0xF0:
+    return -1;
   }
 
-  return result;
+  return 0;
 }
 
 #define  PF0 (memmap->tia_write[TIA_WRITE_PF0])
@@ -783,7 +806,6 @@ int TiaReadRegs()
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMM0]);
   tia->missile1->hMotion =
     TiaConvertHmToInt(memmap->tia_write[TIA_WRITE_HMM1]);
-
 
   return 0;
 }

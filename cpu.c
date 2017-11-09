@@ -19,8 +19,8 @@ void StackPushShort(ushort bytes){
   memmap->memory[( STACK_MASK | --REG_SP)] = ((char*)&bytes)[0];
 }
 
-#define OPPRINTF(...) printf(__VA_ARGS__)
-//#define OPPRINTF(...) 
+// #define OPPRINTF(...) printf(__VA_ARGS__)
+#define OPPRINTF(...) 
 
 int
 CpuCycle(){

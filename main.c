@@ -54,6 +54,11 @@ int main(int argc, char *argv[])
 
   size = read(fd, memmap->rom, ROM_SIZE);
 
+  if (size == ROM_SIZE_2K) {
+    printf("2K ROM detected, copying");
+    memcpy(memmap->rom2k2, memmap->rom2k1, ROM_SIZE_2K);
+  }
+
   CpuCreate();
 
   RunProgram(stella);

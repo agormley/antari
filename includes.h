@@ -6,7 +6,12 @@
 #include <time.h>
 #include <stdlib.h>
 #include <pthread.h>
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
