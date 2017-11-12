@@ -42,6 +42,9 @@ int main(int argc, char *argv[])
 
   printf("Stella created\n");
 
+  audio1 = SoundGeneratorCreate();
+  audio2 = SoundGeneratorCreate();
+
   MemoryCreate();
 
   TiaCreate();

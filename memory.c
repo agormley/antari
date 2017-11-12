@@ -66,7 +66,8 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   case TIA_WRITE_RESP0:
     // printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
     tia->player0->pixBit = 0;
-    tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
+    tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?16:
+      tia->column-HORIZONTAL_BLANK+16;
 
     tia->player0->reset = true;
     break;
@@ -93,13 +94,16 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
    
     break;
   case TIA_WRITE_RESBL:
-    printf("%s: reset ball %d\n", __FUNCTION__, tia->column);
-     tia->ball->pixBit = 0;
-     tia->ball->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
- 
+    //  printf("%s: reset ball %d\n", __FUNCTION__, tia->column);
+    tia->ball->pixBit = 0;
+    tia->ball->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
+    tia->ball->enabled= true;
     tia->ball->reset = true;
     break;
- 
+  case TIA_WRITE_VDELBL:
+    printf("VDELBL\n");
+    tia->ball->enabled = true;
+    break;
   case TIA_WRITE_HMOVE:
     tia->hMotionPending = true;
     break;
@@ -150,10 +154,20 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     pia->timer_interval_timer = 0;
     pia->timer = byte;
     break;
-
+  case TIA_WRITE_AUDF0:
+    audio1->frequency = byte;
+    break;
+  case TIA_WRITE_AUDF1:
+    audio2->frequency = byte;
+    break;
+  case TIA_WRITE_AUDV0:
+    audio1->volume = byte;
+    break;
+  case TIA_WRITE_AUDV1:
+    audio2->volume = byte;
+    break;
   default:
     break;
-    
   }
   
   //TODO: check that addr is in range'

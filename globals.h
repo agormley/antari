@@ -2,6 +2,8 @@ extern Cpu *processor;
 extern MemoryMap *memmap;
 extern Tia *tia;
 extern Pia *pia;
+extern SoundGenerator *audio1;
+extern SoundGenerator *audio2;
 
 extern bool Wsync;
 extern bool ResetPlayer0;

@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -24,7 +25,7 @@
 #include "stella.h"
 #include "tia.h"
 #include "pia.h"
-
+#include "soundgenerator.h"
 #include "globals.h"
 #include "color.h"
 #include "ops.h"
