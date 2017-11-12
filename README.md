@@ -1,10 +1,16 @@
-# antari
-My attempt at an Atari 2600 emulator
+# Antari
 
-This is pretty far from complete and bug free but will render backgrounds and player sprites.
 
-If you are lucky, a 4k rom will load and let you move the player around.
+Antari is an Atari 2600 emulator that I started as a way to understand the hardware of the VCS console. 
+My initial goal was to be able to render the backgrounds (playfield). 
+This version can render all sprites (though missiles are very broken), allow player movement, detect collisions, play sounds, and much, much more! 
 
-You must install SDL2 to compile. 
+  - Built on SDL2 framework
+  - 2k and 4k rom support
 
-Good luck!
+# New Features!
+  - Square wave sound effects.
+## Build Linux/Mac OS
+``` # ./make.sh ```
+
+*Note: this is a work in progress and will not perform as expected.*

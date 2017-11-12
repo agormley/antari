@@ -757,7 +757,8 @@ int TiaReadRegs()
     tia->missile1->enabled = false;
   }
   
-  if(memmap->tia_write[TIA_WRITE_ENABL] & (1<<1)) {
+  if(memmap->tia_write[TIA_WRITE_ENABL] & (1<<1) ||
+     tia->ball->reset) {
     tia->ball->enabled = true;
   }
   else{
