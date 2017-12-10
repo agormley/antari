@@ -166,7 +166,7 @@ StellaCreate()
     printf("%s: failed", __FUNCTION__);
 
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-  SDLInitAudio(48000, 4096);
+  SDLInitAudio(44100, 4096);
   window = SDL_CreateWindow("Gormtari",
 			    SDL_WINDOWPOS_UNDEFINED,
 			    SDL_WINDOWPOS_UNDEFINED,

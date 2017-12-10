@@ -66,8 +66,8 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
   case TIA_WRITE_RESP0:
     // printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
     tia->player0->pixBit = 0;
-    tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?16:
-      tia->column-HORIZONTAL_BLANK+16;
+    tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?8:
+      tia->column-HORIZONTAL_BLANK+8;
 
     tia->player0->reset = true;
     break;
@@ -155,16 +155,22 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     pia->timer = byte;
     break;
   case TIA_WRITE_AUDF0:
-    audio1->frequency = byte;
+    audio1->frequency = byte&0x1F;
     break;
   case TIA_WRITE_AUDF1:
-    audio2->frequency = byte;
+    audio2->frequency = byte&0x1F;
+    break;
+  case TIA_WRITE_AUDC0:
+    audio1->tone = byte&0xF;
+    break;
+  case TIA_WRITE_AUDC1:
+    audio2->tone = byte&0xF;
     break;
   case TIA_WRITE_AUDV0:
-    audio1->volume = byte;
+    audio1->volume = byte&0xF;
     break;
   case TIA_WRITE_AUDV1:
-    audio2->volume = byte;
+    audio2->volume = byte&0xF;
     break;
   default:
     break;
