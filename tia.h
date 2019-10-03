@@ -271,17 +271,19 @@ D2 D1 D0 1/2 television line (80 clocks) 8 clocks per square Description
 
 typedef struct _sprite
 {
-    int color;
-    int lum;
-    int pixBit;
-    int clkStart;
-    int hMotion;
-    int width;
-    int copies;
-    int space;
-    bool enabled;
-    bool reset;
-    bool reflect;
+  int color;
+  int lum;
+  int pixBit;
+  int clkStart;
+  int hMotion;
+  int width;
+  int copies;
+  int space;
+  bool enabled;
+  bool reset;
+  bool reflect;
+  int copyCount;
+  int spaceCount;
 }Sprite;
 
 typedef struct _playfield{

@@ -50,6 +50,12 @@ TiaConvertHmToInt(BYTE hm)
   return 0;
 }
 
+void
+updatePlayerSpace(Sprite* sp) {
+  sp->spaceCount = sp->space * 8;
+  sp->spaceCount = sp->space * 8;
+}
+
 #define  PF0 (memmap->tia_write[TIA_WRITE_PF0])
 #define  PF1 (memmap->tia_write[TIA_WRITE_PF1])
 #define  PF2 (memmap->tia_write[TIA_WRITE_PF2])
@@ -134,11 +140,13 @@ getSpritePixels(int row,
   ColorPalette p0_color = {0,0,0};
   ColorPalette p1_color = {0,0,0};
   ColorPalette ball_color = {0,0,0};
+  Sprite *p0 = tia->player0;
+  Sprite *p1 = tia->player1;
 
-  p0_color = palette[tia->player0->lum][tia->player0->color];
+  p0_color = palette[p0->lum][p0->color];
   p0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
 
-  p1_color = palette[tia->player1->lum][tia->player1->color];
+  p1_color = palette[p1->lum][p1->color];
   p1_pixel = StellaCreatePixel(0x00, p1_color.red, p1_color.green, p1_color.blue);
 
   m0_pixel = StellaCreatePixel(0x00, p0_color.red, p0_color.green, p0_color.blue);
@@ -148,19 +156,17 @@ getSpritePixels(int row,
   ball_color = palette[playField->pf_lum][playField->pf_color];
   ball_pixel = StellaCreatePixel(0x00, ball_color.red, ball_color.green, ball_color.blue);
   
-  
-  
   // is this the right place for horizontal motion?
   if(tia->hMotionPending){
     tia->hMotionPending = false;
 
-    tia->player0->clkStart -= tia->player0->hMotion;
-    if(tia->player0->clkStart < 0)
-      tia->player0->clkStart = 0;
+    p0->clkStart -= p0->hMotion;
+    if(p0->clkStart < 0)
+      p0->clkStart = 0;
 
-    tia->player1->clkStart -= tia->player1->hMotion;
-    if(tia->player1->clkStart < 0)
-      tia->player1->clkStart = 0;
+    p1->clkStart -= p1->hMotion;
+    if(p1->clkStart < 0)
+      p1->clkStart = 0;
 
     tia->missile0->clkStart -= tia->missile0->hMotion;
     if(tia->missile0->clkStart < 0)
@@ -173,31 +179,40 @@ getSpritePixels(int row,
     tia->ball->clkStart -= tia->ball->hMotion;
     if(tia->ball->clkStart < 0)
       tia->ball->clkStart = 0;
-
-
-    
   }
   
   // player 0
-  if(tia->player0->reset) {
-    tia->player0->reset = false;
+  if(p0->reset) {
+    p0->reset = false;
 
   }
   else {
-    if( tia->player0->clkStart == column){
-      tia->player0->pixBit = 0;
-      tia->player0->clkStart = column;
+    bool p0Enable = p0->copies > 1 &&
+      p0->copyCount < p0->copies &&
+      p0->copyCount > 0 &&
+      p0->spaceCount == 0;
+      
+    if((p0->clkStart == column &&
+        p0->delayed)||
+        p0Enable){
+      p0->pixBit = 0;
+      p0->clkStart = column;
     }
 
-    if (tia->player0->pixBit < 0 ) {
+    if (p0->pixBit < 0 ) {
+      if (p0->copyCount > 0 && p0->spaceCount > 0) {
+        p0->spaceCount--;
+      }
+
+      
       *hasP0 = false;
       // could set the alpha?
       *p0Pixel = 0;
     } else {
       // get p0 pixel!
-	if(tia->player0->reflect){
+	if(p0->reflect){
 	    if ( memmap->tia_write[TIA_WRITE_GRP0] &
-		 (1 << (tia->player0->pixBit / tia->player0->width))){
+		 (1 << (p0->pixBit / p0->width))){
 		*hasP0 = true;
 		// could set the alpha?
 		*p0Pixel = p0_pixel;
@@ -211,7 +226,7 @@ getSpritePixels(int row,
 	}
 	else{
 	    if ( memmap->tia_write[TIA_WRITE_GRP0] &
-		 (1 << (7 - tia->player0->pixBit / tia->player0->width))){
+		 (1 << (7 - p0->pixBit / p0->width))){
 		*hasP0 = true;
 		// could set the alpha?
 		*p0Pixel = p0_pixel;
@@ -222,37 +237,43 @@ getSpritePixels(int row,
 		*p0Pixel = 0;
 	    }
 	}
-	tia->player0->pixBit=(tia->player0->pixBit+1)/tia->player0->width>7?-1:
-	    tia->player0->pixBit+1;
+
+        if ((p0->pixBit + 1)/p0->width > 7) {
+          updatePlayerSpace(p0);
+          p0->copyCount--;
+          p0->pixBit = -1;
+        } else {
+          p0->pixBit = p0->pixBit+1;
+        }
 
     }
   }
 
   // player 1
-  if(tia->player1->reset){
-      tia->player1->reset = false;
+  if(p1->reset){
+      p1->reset = false;
       
   } else {
-      if(tia->player1->clkStart == column){ // or matches 
-	  tia->player1->pixBit = 0;
-	  tia->player1->clkStart = column;
+      if(p1->clkStart == column){ // or matches 
+	  p1->pixBit = 0;
+	  p1->clkStart = column;
       }
       
-      if (tia->player1->pixBit < 0 ) {
+      if (p1->pixBit < 0 ) {
 	  *hasP1 = false;
 	  // could set the alpha?
 	  *p1Pixel = 0;
       } else {
-	  if(tia->player1->reflect &&
+	  if(p1->reflect &&
 	     memmap->tia_write[TIA_WRITE_GRP1] &
-	     (1 << (tia->player1->pixBit / tia->player1->width))){
+	     (1 << (p1->pixBit / p1->width))){
 	      *hasP1 = true;
 	      // could set the alpha?
 	      *p1Pixel = p1_pixel;
 	      
-	  } else if(!tia->player1->reflect &&
+	  } else if(!p1->reflect &&
 		    memmap->tia_write[TIA_WRITE_GRP1] &
-		    (1 << (7 - tia->player1->pixBit / tia->player1->width))){
+		    (1 << (7 - p1->pixBit / p1->width))){
 	      *hasP1 = true;
 	      // could set the alpha?
 	      *p1Pixel = p1_pixel;
@@ -264,7 +285,7 @@ getSpritePixels(int row,
 	      
 	  }
 	  
-	  tia->player1->pixBit=(tia->player1->pixBit+1)/tia->player1->width>7?-1:tia->player1->pixBit+1;
+	  p1->pixBit=(p1->pixBit+1)/p1->width>7?-1:p1->pixBit+1;
       }
   }
 
@@ -683,48 +704,58 @@ int TiaClearHMotion(){
 }
 
 void
+updatePlayerCounts() {
+  Sprite* p0 = tia->player0;
+  Sprite* p1 = tia->player1;
+  p0->copyCount = p0->copies - 1;
+  p1->copyCount = p1->copies - 1;
+  updatePlayerSpace(p0);
+  updatePlayerSpace(p1);
+}
+
+void
 parsePlayerSize(int reg, Sprite* sp){
   switch (MEM_WR(reg) & 7)
   {
   case ONE_COPY:
       sp->copies = 1;
       sp->width = 1;
-      sp->space = 1;
+      sp->space = 0;
       break;
   case TWO_COPIES_CLOSE:
       sp->copies = 2;
       sp->width = 1;
-      sp->space = 2;
+      sp->space = 1;
       break;
   case TWO_COPIES_MID:
       sp->copies = 2;
       sp->width = 1;
-      sp->space = 4;
+      sp->space = 3;
       break;
   case THREE_COPIES_CLOSE:
       sp->copies = 3;
       sp->width = 1;
-      sp->space = 2;
+      sp->space = 1;
       break;
   case TWO_COPIES_FAR:
       sp->copies = 2;
       sp->width = 1;
-      sp->space = 8;
+      sp->space = 7;
       break;
   case ONE_COPY_DOUBLE:
       sp->copies = 1;
       sp->width = 2;
-      sp->space = 1;
+      sp->space = 0;
       break;
   case THREE_COPIES_MID:
       sp->copies = 3;
       sp->width = 1;
-      sp->space = 4;
+      sp->space = 3;
       break;
   case ONE_COPY_QUAD:
       sp->copies = 1;
       sp->width = 4;
-      sp->space = 1;
+      sp->space = 0;
       break;
   }
 }
@@ -823,6 +854,7 @@ TiaCycle()
   if(tia->column == 0) {
     tia->wsync = false;
     tia->row = (tia->row + 1) % SCAN_LINES;
+    updatePlayerCounts();
   }
     
   return tia->column * tia->row;
