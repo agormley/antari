@@ -53,7 +53,6 @@ TiaConvertHmToInt(BYTE hm)
 void
 updatePlayerSpace(Sprite* sp) {
   sp->spaceCount = sp->space * 8;
-  sp->spaceCount = sp->space * 8;
 }
 
 #define  PF0 (memmap->tia_write[TIA_WRITE_PF0])
@@ -66,6 +65,10 @@ updatePlayerSpace(Sprite* sp) {
 #define TIA_CTRLPF_BALL_SIZE_MASK 0x30
 #define TIA_COLOR_MASK 0xF0
 #define TIA_LUM_MASK 0x0E
+
+
+int missile0Pos;
+int missile1Pos;
 
 PlayField *playField;
 
@@ -168,13 +171,13 @@ getSpritePixels(int row,
     if(p1->clkStart < 0)
       p1->clkStart = 0;
 
-    tia->missile0->clkStart -= tia->missile0->hMotion;
-    if(tia->missile0->clkStart < 0)
-      tia->missile0->clkStart = 0;
+    missile0Pos = tia->missile0->clkStart - tia->missile0->hMotion;
+    if(missile0Pos < 0)
+      missile0Pos = 0;
 
-    tia->missile1->clkStart -= tia->missile1->hMotion;
-    if(tia->missile1->clkStart < 0)
-      tia->missile1->clkStart = 0;
+    missile1Pos = tia->missile1->clkStart - tia->missile1->hMotion;
+    if(missile1Pos < 0)
+      missile1Pos = 0;
 
     tia->ball->clkStart -= tia->ball->hMotion;
     if(tia->ball->clkStart < 0)
@@ -184,7 +187,6 @@ getSpritePixels(int row,
   // player 0
   if(p0->reset) {
     p0->reset = false;
-
   }
   else {
     bool p0Enable = p0->copies > 1 &&
@@ -193,7 +195,7 @@ getSpritePixels(int row,
       p0->spaceCount == 0;
       
     if((p0->clkStart == column &&
-        p0->delayed)||
+        !p0->delayed)||
         p0Enable){
       p0->pixBit = 0;
       p0->clkStart = column;
@@ -202,6 +204,7 @@ getSpritePixels(int row,
     if (p0->pixBit < 0 ) {
       if (p0->copyCount > 0 && p0->spaceCount > 0) {
         p0->spaceCount--;
+        printf("spacecount %d\n", p0->spaceCount);
       }
 
       
@@ -231,21 +234,23 @@ getSpritePixels(int row,
 		// could set the alpha?
 		*p0Pixel = p0_pixel;
 		
-	    }	else {
+	    } else {
 		*hasP0 = false;
 		// could set the alpha?
 		*p0Pixel = 0;
 	    }
 	}
-
+        // Finish p0 sprite
         if ((p0->pixBit + 1)/p0->width > 7) {
-          updatePlayerSpace(p0);
-          p0->copyCount--;
-          p0->pixBit = -1;
+            
+            updatePlayerSpace(p0);
+            p0->copyCount--;
+            p0->pixBit = -1;
         } else {
-          p0->pixBit = p0->pixBit+1;
+            printf("pixBit %d\n", p0->pixBit);
+            p0->pixBit = p0->pixBit+1;
         }
-
+        
     }
   }
 
@@ -254,13 +259,25 @@ getSpritePixels(int row,
       p1->reset = false;
       
   } else {
-      if(p1->clkStart == column){ // or matches 
+      bool p1Enable = p1->copies > 1 &&
+          p1->copyCount < p1->copies &&
+          p1->copyCount > 0 &&
+          p1->spaceCount == 0;
+    
+      if((p1->clkStart == column &&
+          !p1->delayed) ||
+          p1Enable){ // or matches 
 	  p1->pixBit = 0;
 	  p1->clkStart = column;
       }
       
       if (p1->pixBit < 0 ) {
-	  *hasP1 = false;
+          if (p1->copyCount > 0 && p1->spaceCount > 0) {
+              p1->spaceCount--;
+          }
+
+ 
+          *hasP1 = false;
 	  // could set the alpha?
 	  *p1Pixel = 0;
       } else {
@@ -269,14 +286,14 @@ getSpritePixels(int row,
 	     (1 << (p1->pixBit / p1->width))){
 	      *hasP1 = true;
 	      // could set the alpha?
-	      *p1Pixel = p1_pixel;
+	      *p1Pixel = 0; // p1_pixel;
 	      
 	  } else if(!p1->reflect &&
 		    memmap->tia_write[TIA_WRITE_GRP1] &
 		    (1 << (7 - p1->pixBit / p1->width))){
 	      *hasP1 = true;
 	      // could set the alpha?
-	      *p1Pixel = p1_pixel;
+	      *p1Pixel = 0; // p1_pixel;
 	  }
 	  else {
 	      *hasP1 = false;
@@ -285,7 +302,13 @@ getSpritePixels(int row,
 	      
 	  }
 	  
-	  p1->pixBit=(p1->pixBit+1)/p1->width>7?-1:p1->pixBit+1;
+	  if ((p1->pixBit+1)/p1->width>7) {
+              updatePlayerSpace(p1);
+              p1->copyCount--;
+              p1->pixBit = -1;
+          } else {
+              p1->pixBit = p1->pixBit+1;
+          }
       }
   }
 
@@ -322,9 +345,9 @@ getSpritePixels(int row,
   
   }
   else if(tia->missile0->enabled) {
-    if( tia->missile0->clkStart == column){
+    if( missile0Pos == column){
       tia->missile0->pixBit = 0;
-      tia->missile0->clkStart = column;
+      //tia->missile0->clkStart = column;
     }
 
     if (tia->missile0->pixBit < 0 ) {
@@ -365,6 +388,17 @@ getSpritePixels(int row,
     0    Vertical Delay  (0=No delay, 1=Delay until writing to GRP0/GRP1)
     1-7  Not used
 
+When VDELPx is set, writes to GRPx are delayed until GRPy is written to - which may be done in the same scanline, in one of the next scanlines, or in the next frame, or never - and may thus actually cause a horizontal, vertical, framerate, or even endless delay.
+  Bit  Expl.
+  0    Vertical Delay  (0=No delay, 1=Delay until writing to GRP0/GRP1)
+  1-7  Not used
+The misleading name "vertical" delay is used because these registers were originally intended to be used to update GRPx in one scanline and to have the changes delayed until GRPy is updated in the next scanline.
+
+Notes on High Resolution Text and Vertical Delay
+Many newer games (eg. Pacman) use high resolution text or graphics output, of 6 characters or 48 pixels width. This is done by configuring NUSIZ to "three copies close", and positioning GRP0 ("0_0_0") eight pixels to the left of GRP1 ("1_1_1"), resulting in the pattern "010101".
+Updating GRP0 and GRP1 multiple times within each scanline can be done to change the pattern to 6 different characters ("012345"), the drawing procedure requires proper timing, and typically uses "vertical" delay (in this case behaving as horizontal delay), note that one usually needs 7 writes to GRP registers to draw 6 characters (with one final dummy write to apply the last (delayed) character).
+The GRPx registers actually consist of two registers each, hereby called GRPxA (delayed data latch) and GRPxB (actual display data). When VDELx is disabled, writes to GRPx go directly to GRPxB. When VDELx is enabled, writes to GRPx go to GRPxA, and GRPxA is copied to GRPxB at the time when writing to GRPy.
+
    */  
   // missile 1
   if(tia->missile1->reset) {
@@ -372,9 +406,9 @@ getSpritePixels(int row,
   
   }
   else  if (tia->missile1->enabled) {
-    if(tia->missile1->clkStart == column){
+    if(missile1Pos == column){
       tia->missile1->pixBit = 0;
-      tia->missile1->clkStart = column;
+      //tia->missile1->clkStart = column;
     }
   
     if (tia->missile1->pixBit < 0 ) {
@@ -383,7 +417,7 @@ getSpritePixels(int row,
       *m1Pixel = 0;
     } else {
       // get p1 pixel!
-      if ( tia->missile0->enabled ){
+      if ( tia->missile1->enabled ){
 	*hasM1 = true;
 	// could set the alpha?
 	*m1Pixel = m1_pixel;
@@ -440,7 +474,6 @@ TiaPlayField(int row, int column){
     return 0;
   
   TiaParsePlayField();
-
  
   bk_color = palette[playField->bk_lum][playField->bk_color];
   bk_pixel = StellaCreatePixel(0x00, bk_color.red, bk_color.green, bk_color.blue);

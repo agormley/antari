@@ -210,7 +210,8 @@ PIA 6532 - RAM, Switches, and Timer (Read/Write)
 #define TIA_WRITE_HMOVE  0x2A
 #define TIA_WRITE_HMCLR  0x2B
 #define TIA_WRITE_CXCLR  0x2C
-  
+#define TIA_WRITE_GRP0b  0x2D
+#define TIA_WRITE_GRP1b  0x2E
 
 #define TIA_READ_CXM0P 0x00
 #define TIA_READ_CXM1P 0x01
@@ -271,20 +272,22 @@ D2 D1 D0 1/2 television line (80 clocks) 8 clocks per square Description
 
 typedef struct _sprite
 {
-  int color;
-  int lum;
-  int pixBit;
-  int clkStart;
-  int hMotion;
-  int width;
-  int copies;
-  int space;
-  bool enabled;
-  bool reset;
-  bool reflect;
-  int copyCount;
-  int spaceCount;
-}Sprite;
+    int color;
+    int lum;
+    int pixBit;
+    int pixBitDelayed;
+    int clkStart;
+    int hMotion;
+    int width;
+    int copies;
+    int space;
+    bool enabled;
+    bool reset;
+    bool reflect;
+    bool delayed;
+    int copyCount;
+    int spaceCount;    
+} Sprite;
 
 typedef struct _playfield{
   bool reflect;

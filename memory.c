@@ -101,9 +101,30 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     tia->ball->reset = true;
     break;
   case TIA_WRITE_VDELBL:
-    printf("VDELBL\n");
     tia->ball->enabled = true;
     break;
+  case TIA_WRITE_VDELP0:
+      tia->player0->delayed = byte;
+      break;
+  case TIA_WRITE_VDELP1:
+      tia->player1->delayed = byte;
+      break;
+  case TIA_WRITE_GRP0:
+      if (tia->player0->delayed) {
+          addr1 = TIA_WRITE_GRP0b;
+      }
+      if (tia->player1->delayed) {
+          memmap->memory[TIA_WRITE_GRP1] = memmap->memory[TIA_WRITE_GRP1b]; 
+      }
+      break;
+  case TIA_WRITE_GRP1:
+      if (tia->player1->delayed) {                                                            
+          addr1 = TIA_WRITE_GRP1b;                                                                  
+      }                                                                                             
+      if (tia->player0->delayed) {                                                                  
+          memmap->memory[TIA_WRITE_GRP0] = memmap->memory[TIA_WRITE_GRP0b];
+      }              
+      break;
   case TIA_WRITE_HMOVE:
     tia->hMotionPending = true;
     break;
@@ -111,7 +132,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     TiaClearHMotion();
 
     break;
-  case TIA_WRITE_CXCLR:
+   case TIA_WRITE_CXCLR:
       
       MEM_RD(TIA_READ_CXM0P) = 0; 
       
