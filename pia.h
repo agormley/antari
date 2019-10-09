@@ -52,6 +52,11 @@ typedef struct _pia{
     bool p0up;
     bool p0down;
     bool p0button;
+    bool p1left;
+    bool p1right;
+    bool p1up;
+    bool p1down;
+    bool p1button;
   };
 }Pia;
 

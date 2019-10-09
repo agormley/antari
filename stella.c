@@ -8,96 +8,124 @@
 int
 StellaProcessEvent(SDL_Event event){
 
-  switch(event.type){
-  case SDL_QUIT:
-    gQuit = true;
-    break;
-  case SDL_APP_TERMINATING:
-    break;
-  case SDL_APP_WILLENTERBACKGROUND:
-    break;
-  case SDL_APP_DIDENTERBACKGROUND:
-    break;
-  case SDL_APP_WILLENTERFOREGROUND:
-    break;
-  case SDL_APP_DIDENTERFOREGROUND:
-    break;
-  case SDL_WINDOWEVENT:
-    break;
-  case SDL_SYSWMEVENT:
-    break;
-  case SDL_KEYDOWN:
-    // TODO: move to keypress event handle
-    switch( event.key.keysym.sym ){
-    case SDLK_F1:
-      pia->game_select = true;
-      break;
-    case SDLK_F2:
-      pia->game_reset = true;
-      break;
-    case SDLK_F3:
-      pia->color = pia->color?false:true;
-      break;
-    case SDLK_F4:
-	pia->p0difficulty = pia->p0difficulty?false:true;
-	break;
-    case SDLK_F5:
-	pia->p1difficulty = pia->p1difficulty?false:true;
-	break;
-    case SDLK_LEFT:
-      pia->p0left = true;
-      break;
-    case SDLK_RIGHT:
-      pia->p0right = true;
-      break;
-    case SDLK_UP:
-      pia->p0up = true;
-      break;
-    case SDLK_DOWN:
-      pia->p0down = true;
-      break;
-    case SDLK_SPACE:
-      pia->p0button = true;
-      break;
-    case SDLK_ESCAPE:
-      gQuit = true;
-      break;
+    switch(event.type){
+    case SDL_QUIT:
+        gQuit = true;
+        break;
+    case SDL_APP_TERMINATING:
+        break;
+    case SDL_APP_WILLENTERBACKGROUND:
+        break;
+    case SDL_APP_DIDENTERBACKGROUND:
+        break;
+    case SDL_APP_WILLENTERFOREGROUND:
+        break;
+    case SDL_APP_DIDENTERFOREGROUND:
+        break;
+    case SDL_WINDOWEVENT:
+        break;
+    case SDL_SYSWMEVENT:
+        break;
+    case SDL_KEYDOWN:
+        // TODO: move to keypress event handle
+        switch( event.key.keysym.sym ){
+        case SDLK_F1:
+            pia->game_select = true;
+            break;
+        case SDLK_F2:
+            pia->game_reset = true;
+            break;
+        case SDLK_F3:
+            pia->color = pia->color?false:true;
+            break;
+        case SDLK_F4:
+            pia->p0difficulty = pia->p0difficulty?false:true;
+            break;
+        case SDLK_F5:
+            pia->p1difficulty = pia->p1difficulty?false:true;
+            break;
+        case SDLK_LEFT:
+            pia->p0left = true;
+            break;
+        case SDLK_RIGHT:
+            pia->p0right = true;
+            break;
+        case SDLK_UP:
+            pia->p0up = true;
+            break;
+        case SDLK_DOWN:
+            pia->p0down = true;
+            break;
+        case SDLK_SPACE:
+            pia->p0button = true;
+            break;
+        case SDLK_a:
+            pia->p1left = true;
+            break;
+        case SDLK_d:
+            pia->p1right = true;
+            break;
+        case SDLK_w:
+            pia->p1up = true;
+            break;
+        case SDLK_s:
+            pia->p1down = true;
+            break;
+        case SDLK_e:
+            pia->p1button = true;
+            break;
+        case SDLK_ESCAPE:
+            gQuit = true;
+            break;
+        default:
+            break;
+        }
+        break;
+    case SDL_KEYUP:
+        // TODO: move to keypress event handle
+        switch( event.key.keysym.sym ){
+        case SDLK_F1:
+            pia->game_select = false;
+            break;
+        case SDLK_F2:
+            pia->game_reset = false;
+            break;
+        case SDLK_LEFT:
+            pia->p0left = false;
+            break;
+        case SDLK_RIGHT:
+            pia->p0right = false;
+            break;
+        case SDLK_UP:
+            pia->p0up = false;
+            break;
+        case SDLK_DOWN:
+            pia->p0down = false;
+            break;
+        case SDLK_SPACE:
+            pia->p0button = false;
+            break;
+        case SDLK_a:
+            pia->p1left = false;
+            break;
+        case SDLK_d:
+            pia->p1right = false;
+            break;
+        case SDLK_w:
+            pia->p1up = false;
+            break;
+        case SDLK_s:
+            pia->p1down = false;
+            break;
+        case SDLK_e:
+            pia->p1button = false;
+            break;
+        }
     default:
-      break;
+        break;
     }
-    break;
-  case SDL_KEYUP:
-    // TODO: move to keypress event handle
-    switch( event.key.keysym.sym ){
-    case SDLK_F1:
-      pia->game_select = false;
-      break;
-    case SDLK_F2:
-      pia->game_reset = false;
-      break;
-    case SDLK_LEFT:
-      pia->p0left = false;
-      break;
-    case SDLK_RIGHT:
-      pia->p0right = false;
-      break;
-    case SDLK_UP:
-      pia->p0up = false;
-      break;
-    case SDLK_DOWN:
-      pia->p0down = false;
-      break;
-    case SDLK_SPACE:
-      pia->p0button = false;
-      break;
-
-    }
-    break;
-  default:
-    break;
-  }
-  
-  return 0;
+    
+    return 0;
 }
 
 Uint32 StellaCreatePixel(unsigned char alpha,

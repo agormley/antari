@@ -12,8 +12,8 @@ RunProgram(STELLA* stella){
     if(gQuit)
       return 1;
     if(counter % 3 == 0){
-      CpuCycle();
       PiaCycle();
+      CpuCycle(); 
     }
 
     TiaCycle();
@@ -22,7 +22,6 @@ RunProgram(STELLA* stella){
       StellaPrintFrame(stella, framebuffer);
     }
     counter++;
-
   }
 }
 

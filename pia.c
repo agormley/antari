@@ -40,10 +40,10 @@ PiaWriteRegs(){
   if(!pia->game_reset){
     byte |= (1 << 0);
   }
-
+  
   memmap->memory[SWCHB] = byte;
 
-  byte = 0;
+  byte = 0x00;
   if(!pia->p0left){
     byte |= 1 << 6;
     pia->p0left = false;
@@ -60,9 +60,26 @@ PiaWriteRegs(){
     byte |= 1 << 5;
     pia->p0down = false;
   }
-
-  memmap->memory[SWCHA] = byte;
+  if(!pia->p1left){
+    byte |= 1 << 2;
+    pia->p1left = false;
+  }
+  if(!pia->p1right){
+    byte |= 1 << 3;
+    pia->p1right = false;
+  }
+  if(!pia->p1up){
+    byte |= 1;
+    pia->p1up = false;
+  }
+  if(!pia->p1down){
+    byte |= 1 << 1;
+    pia->p1down = false;
+  }
   
+  //byte |= 0xf;
+  memmap->memory[SWCHA] = byte;
+  //printf("SWCHA 0x%.2x\n", byte);
   if(!pia->p0button){
     memmap->tia_read[TIA_READ_INPT4] = 1 << 7;
     pia->p0button = false;

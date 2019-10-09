@@ -64,39 +64,48 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     printf("%s: rsync strobe not implemented\n", __FUNCTION__);
     break;
   case TIA_WRITE_RESP0:
-    // printf("%s: reset p0 %d\n", __FUNCTION__, tia->column);
+      //printf("%s: reset p0 raw: %d, adj: %d\n", __FUNCTION__, tia->column,
+      //      tia->column-HORIZONTAL_BLANK);
     tia->player0->pixBit = 0;
-    tia->player0->clkStart = tia->column-HORIZONTAL_BLANK<0?8:
-      tia->column-HORIZONTAL_BLANK+8;
-
+    tia->player0->clkStart = tia->column+12-HORIZONTAL_BLANK<0?3:
+      tia->column+12+5-HORIZONTAL_BLANK;
+    while(tia->player0->clkStart < 0)
+        tia->player0->clkStart += 3;
     tia->player0->reset = true;
     break;
   case TIA_WRITE_RESP1:
-    // printf("%s: reset p1 %d\n", __FUNCTION__, tia->column);
+      //printf("%s: reset p1 %d\n", __FUNCTION__, tia->column);
     tia->player1->pixBit = 0;
-    tia->player1->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
-
+    tia->player1->clkStart = tia->column+12-HORIZONTAL_BLANK<0?3:tia->column+12+5-HORIZONTAL_BLANK;;
+    while(tia->player1->clkStart < 0)
+        tia->player1->clkStart += 3;
     tia->player1->reset = true;
     break;
   case TIA_WRITE_RESM0:
     //printf("%s: reset m0 %d \n", __FUNCTION__, tia->column);
 
     tia->missile0->pixBit = 0;
-    tia->missile0->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;
+    tia->missile0->clkStart = tia->column+12-HORIZONTAL_BLANK<0?3:tia->column+12+4-HORIZONTAL_BLANK;
+    while(tia->missile0->clkStart < 0)
+        tia->missile0->clkStart += 3;
     tia->missile0->reset = true;
     
     break;
   case TIA_WRITE_RESM1:
     //  printf("%s: reset m1 %d \n", __FUNCTION__, tia->column);
     tia->missile1->pixBit = 0;
-    tia->missile1->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;
+    tia->missile1->clkStart = tia->column+12-HORIZONTAL_BLANK<0?3:tia->column+12+4-HORIZONTAL_BLANK;
+    while (tia->missile1->clkStart < 0)
+        tia->missile1->clkStart += 3;
     tia->missile1->reset = true;
    
     break;
   case TIA_WRITE_RESBL:
     //  printf("%s: reset ball %d\n", __FUNCTION__, tia->column);
     tia->ball->pixBit = 0;
-    tia->ball->clkStart = tia->column-HORIZONTAL_BLANK<0?0:tia->column-HORIZONTAL_BLANK;;
+    tia->ball->clkStart = tia->column+12-HORIZONTAL_BLANK<0?3:tia->column+12+4-HORIZONTAL_BLANK;
+    while (tia->ball->clkStart < 0)
+        tia->ball->clkStart += 3;
     tia->ball->enabled= true;
     tia->ball->reset = true;
     break;
@@ -114,6 +123,19 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
           addr1 = TIA_WRITE_GRP0b;
       }
       if (tia->player1->delayed) {
+          // unsigned char n  = byte;
+          // int i = 0;
+          // printf("GRP0: ");
+          //for (i = 0; i<8; i++) {
+              //  if (n & 1)
+            //      printf("1");
+             // else
+              //    printf("0");
+              
+            //  n >>= 1;
+         // }
+         // printf("\n");
+          //printf("write to GRP0 (%.2x)\n", byte);
           memmap->memory[TIA_WRITE_GRP1] = memmap->memory[TIA_WRITE_GRP1b]; 
       }
       break;

@@ -19,14 +19,16 @@ void StackPushShort(ushort bytes){
   memmap->memory[( STACK_MASK | --REG_SP)] = ((char*)&bytes)[0];
 }
 
-// #define OPPRINTF(...) printf(__VA_ARGS__)
-#define OPPRINTF(...) 
+int  printcycles = -1;
+
+//#define OPPRINTF(...) printf(__VA_ARGS__)
+#define OPPRINTF(...)
 
 int
 CpuCycle(){
   // get the next opcode
   unsigned char opcode = 0;
-    
+
   // helper vars for calculations
   unsigned char arg1 = 0;
   unsigned char arg2 = 0;
@@ -38,32 +40,34 @@ CpuCycle(){
     //printf("cpu taking cycles: %d\n", processor->cycles);
     return processor->cycles;
   }
-      
+
   if(tia->wsync) {
-    //printf("CPU PAUSED\n");
-    return 0;
+      //printf("CPU PAUSED\n");
+      //printf("wsync called\n");
+      printcycles = 0;;
+      return 0;
   }
 
   opcode = MemoryGetByteAt(REG_PC);
-    
+
   OPPRINTF("%#x: ", REG_PC);
   //    printf("OPCODE:%#x\n", opcode);
   //  OPPRINTF("row %d, column %d\n", tia->row, tia->column);
-  
+
   switch(opcode){
   case OPCODE_ADC_IMM:
     arg1 = REG_A;
     arg2 = getImmediate(REG_PC+1 );
-    
+
     OPPRINTF("ADC #$%.2x\n", arg2);
-    
+
     REG_A = add(arg1, arg2, FLAG_CARRY(REG_ST));
-    
+
     REG_PC += 2;
     cycles = 2;
     break;
   case OPCODE_ADC_ZERO:
-    
+
     arg1 = REG_A;
     arg2  = getZero(REG_PC+1, &addr);
 
@@ -94,24 +98,24 @@ CpuCycle(){
     arg2  = getAbsolute(REG_PC+1, &addr);
 
     OPPRINTF("ADC $%.4x\n", addr);
-    
+
     REG_A =
-      add(arg1, arg2, FLAG_CARRY(REG_ST)); 
+      add(arg1, arg2, FLAG_CARRY(REG_ST));
 
     REG_PC += 3;
     cycles = 4;
-    
+
     break;
 
   case OPCODE_ADC_ABS_X:
 
     arg1 = REG_A;
     arg2  = getAbsoluteX(REG_PC+1, &addr, NULL);
-    
+
     OPPRINTF("ADC $%.4x,X\n", addr);
-    
+
     REG_A =
-      add(arg1, arg2, FLAG_CARRY(REG_ST)); 
+      add(arg1, arg2, FLAG_CARRY(REG_ST));
 
     REG_PC += 3;
 
@@ -121,16 +125,16 @@ CpuCycle(){
       cycles++;
 
     break;
-      
+
   case OPCODE_ADC_ABS_Y:
 
     arg1 = REG_A;
     arg2  = getAbsoluteX(REG_PC+1, &addr, NULL);
-    
+
     OPPRINTF("ADC $%.4x,Y\n", addr);
-    
+
     REG_A =
-      add(arg1, arg2, FLAG_CARRY(REG_ST)); 
+      add(arg1, arg2, FLAG_CARRY(REG_ST));
 
     REG_PC += 3;
 
@@ -139,28 +143,28 @@ CpuCycle(){
       cycles++;
     break;
   case OPCODE_ADC_IND_X:
-      
+
     arg1 = REG_A;
     arg2 = getIndirectX(REG_PC+1, &addr, NULL);
 
     OPPRINTF("ADC ($.2%x,X)\n", addr);
-    
+
     REG_A =
-      add(arg1, arg2, FLAG_CARRY(REG_ST)); 
+      add(arg1, arg2, FLAG_CARRY(REG_ST));
 
     REG_PC += 2;
     cycles = 6;
     break;
-      
+
   case OPCODE_ADC_IND_Y:
-    assert(!FLAG_DECIMAL(REG_ST)); 
-      
+    assert(!FLAG_DECIMAL(REG_ST));
+
     arg1 = REG_A;
     arg2 = getIndirectX(REG_PC+1, &addr, NULL);
     OPPRINTF("ADC ($.2%x),Y\n", addr);
-    
+
     REG_A =
-      add(arg1, arg2, FLAG_CARRY(REG_ST)); 
+      add(arg1, arg2, FLAG_CARRY(REG_ST));
 
     REG_PC += 2;
 
@@ -182,7 +186,7 @@ CpuCycle(){
 
     cycles = 2;
     break;
-    
+
   case OPCODE_AND_ZERO:
     arg1 = REG_A;
     arg2 = getZero(REG_PC+1, &addr);
@@ -212,7 +216,7 @@ CpuCycle(){
 
     arg1 = REG_A;
     arg2 = getAbsolute(REG_PC+1, &addr);
-    
+
     OPPRINTF("AND $%.4x\n", addr);
 
     REG_A = and(arg1, arg2);
@@ -220,7 +224,7 @@ CpuCycle(){
     REG_PC += 3;
     cycles = 4;
     break;
-      
+
   case OPCODE_AND_ABS_X:
     arg1 = REG_A;
 
@@ -232,7 +236,7 @@ CpuCycle(){
 
     REG_PC += 3;
     cycles = 4;
-    
+
     if (((addr  & 0xFF) + REG_X) > 0x100)
       cycles++;
     break;
@@ -247,10 +251,10 @@ CpuCycle(){
 
     REG_PC += 3;
     cycles = 4;
-    
+
     if (((addr  & 0xFF) + REG_Y) > 0x100)
       cycles++;
-    
+
     break;
 
   case OPCODE_AND_IND_X:
@@ -266,9 +270,9 @@ CpuCycle(){
     cycles = 6;
     break;
 
-      
+
   case OPCODE_AND_IND_Y:
-     
+
     arg1 = REG_A;
 
     arg2 = getIndirectY(REG_PC+1, &addr, NULL);
@@ -279,7 +283,7 @@ CpuCycle(){
 
     REG_PC += 2;
     cycles = 5;
-    
+
     if (((addr  & 0xFF) + REG_Y) > 0x100)
       cycles++;
     break;
@@ -295,7 +299,7 @@ CpuCycle(){
     break;
   case 0x6:
   case OPCODE_ASL_ZERO:
-    
+
     arg1 = getZero(REG_PC+1, &addr);
 
     OPPRINTF("ASL: $%.2x\n", addr);
@@ -330,13 +334,13 @@ CpuCycle(){
     REG_PC += 3;
     cycles = 6;
     break;
-      
+
   case OPCODE_ASL_ABS_X:
-    
+
     arg1 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
 
     OPPRINTF("ASL $%.4x,X\n", addr);
-    
+
     // write back to memory
     MemorySetByteAt(write_addr, asl(arg1));
 
@@ -347,7 +351,7 @@ CpuCycle(){
   case OPCODE_BIT_ZERO:
     arg1 = REG_A;
     arg2 = getZero(REG_PC+1, &addr);
-    
+
     OPPRINTF("BIT $%.2x\n", addr);
 
     // No return, just sets flags
@@ -356,7 +360,7 @@ CpuCycle(){
     REG_PC += 2;
     cycles = 3;
     break;
-      
+
   case OPCODE_BIT_ABS:
     arg1 = REG_A;
     arg2 = getAbsolute(REG_PC+1, &addr);
@@ -377,7 +381,7 @@ CpuCycle(){
     cycles = 2;
     // Note address if branch not taken
     addr = REG_PC + 2;
-      
+
     if(!FLAG_NEG(REG_ST)) {
       REG_PC +=
 	(signed char)(MemoryGetByteAt(REG_PC + 1));
@@ -386,7 +390,7 @@ CpuCycle(){
       if((addr & 0xF00) != (REG_PC & 0xF00))
 	cycles++;
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BMI:
     OPPRINTF("BMI %#.4x\n",
@@ -403,7 +407,7 @@ CpuCycle(){
       if((addr & 0xF00) != (REG_PC & 0xF00))
 	cycles++;
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BVC:
     OPPRINTF("BVC %#.4x\n",
@@ -420,7 +424,7 @@ CpuCycle(){
       if((addr & 0xF00) != (REG_PC & 0xF00))
 	cycles++;
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BVS:
     OPPRINTF("BVS %#.4x\n",
@@ -437,7 +441,7 @@ CpuCycle(){
       if((addr & 0xF00) != (REG_PC & 0xF00))
 	cycles++;
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BCC:
     OPPRINTF("BCC %#.4x\n",
@@ -455,7 +459,7 @@ CpuCycle(){
 	cycles++;
 
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BCS:
     OPPRINTF("BCS %#.4x\n",
@@ -472,7 +476,7 @@ CpuCycle(){
 	cycles++;
       cycles++;
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BNE:
 
@@ -491,7 +495,7 @@ CpuCycle(){
       if((addr & 0xF00) != (REG_PC & 0xF00))
 	cycles++;
     }
-    REG_PC += 2;					    
+    REG_PC += 2;
     break;
   case OPCODE_BEQ:
     OPPRINTF("BEQ %#.4x\n",
@@ -509,8 +513,8 @@ CpuCycle(){
 	cycles++;
 
     }
-	 
-    REG_PC += 2;					    
+
+    REG_PC += 2;
     break;
   case OPCODE_BRK:
     OPPRINTF("BRK\n");
@@ -541,7 +545,7 @@ CpuCycle(){
     cmp(arg1, arg2);
     REG_PC += 2;
     cycles = 3;
-	    
+
     break;
   case OPCODE_CMP_ZERO_X:
     arg1 = REG_A;
@@ -575,7 +579,7 @@ CpuCycle(){
 
     REG_PC += 3;
     cycles = 4;
-    
+
     if (((addr  & 0xFF) + REG_X) > 0x100)
       cycles++;
 
@@ -605,7 +609,7 @@ CpuCycle(){
     cycles = 6;
 
     break;
-     
+
   case OPCODE_CMP_IND_Y:
     arg1 = REG_A;
     arg2 = getIndirectY(REG_PC+1, &addr, NULL);
@@ -640,7 +644,7 @@ CpuCycle(){
     cmp(arg1, arg2);
     REG_PC += 2;
     cycles = 3;
-	    
+
     break;
 
   case OPCODE_CPX_ABS:
@@ -677,7 +681,7 @@ CpuCycle(){
     cmp(arg1, arg2);
     REG_PC += 2;
     cycles = 3;
-	    
+
     break;
   case OPCODE_CPY_ABS:
     arg1 = REG_Y;
@@ -693,19 +697,19 @@ CpuCycle(){
     break;
   case OPCODE_DEC_ZERO:
     arg1 = getZero(REG_PC+1, &addr);
- 
+
     OPPRINTF("DEC $%.2x\n", addr);
 
     dec(arg1, addr);
-    
+
     REG_PC += 2;
     cycles = 5;
 
     break;
-     
+
   case OPCODE_DEC_ZERO_X:
     arg1 = getZeroX(REG_PC+1, &addr, &write_addr);
- 
+
     dec(arg1, addr);
 
     OPPRINTF("DEC $%.2x,X\n", addr);
@@ -717,7 +721,7 @@ CpuCycle(){
 
   case OPCODE_DEC_ABS:
     arg1 = getAbsolute(REG_PC+1, &addr);
- 
+
     dec(arg1, addr);
     OPPRINTF("DEC $%.4x\n", addr);
 
@@ -728,7 +732,7 @@ CpuCycle(){
 
   case OPCODE_DEC_ABS_X:
     arg1 = getAbsoluteX(REG_PC+1, &addr, NULL);
- 
+
     dec(arg1, addr);
 
     OPPRINTF("DEC $%.4x,X\n", addr);
@@ -741,7 +745,7 @@ CpuCycle(){
   case OPCODE_EOR_IMM:
     arg1 = REG_A;
     arg2 = getImmediate(REG_PC+1 );
-    
+
     REG_A = eor(arg1, arg2);
     OPPRINTF("EOR #$%.2x\n", arg2);
 
@@ -753,7 +757,7 @@ CpuCycle(){
   case OPCODE_EOR_ZERO:
     arg1 = REG_A;
     arg2 = getZero(REG_PC+1, &addr );
-    
+
     REG_A = eor(arg1, arg2);
     OPPRINTF("EOR $%.2x\n", addr);
 
@@ -765,7 +769,7 @@ CpuCycle(){
   case OPCODE_EOR_ZERO_X:
     arg1 = REG_A;
     arg2 = getZeroX(REG_PC+1, &addr, NULL);
-    
+
     REG_A = eor(arg1, arg2);
     OPPRINTF("EOR $%.2x,X\n", addr);
 
@@ -773,24 +777,24 @@ CpuCycle(){
     cycles = 4;
 
     break;
-      
+
   case OPCODE_EOR_ABS:
     arg1 = REG_A;
     arg2 = getAbsolute(REG_PC+1, &addr );
-    
+
     REG_A = eor(arg1, arg2);
     OPPRINTF("EOR $%.4x\n", addr);
- 
+
     REG_PC += 3;
     cycles = 4;
 
     break;
-      
+
   case OPCODE_EOR_ABS_X:
     arg1 = REG_A;
 
     arg2 = getAbsoluteX(REG_PC+1, &addr, NULL);
-    
+
     REG_A = eor(arg1, arg2);
 
     OPPRINTF("EOR $%.4x,X\n", addr);
@@ -802,18 +806,18 @@ CpuCycle(){
       cycles++;
 
     break;
-      
+
   case OPCODE_EOR_ABS_Y:
     arg1 = REG_A;
 
     arg2 = getAbsoluteY(REG_PC+1, &addr, NULL);
-    
+
     REG_A = eor(arg1, arg2);
 
     OPPRINTF("EOR $%.4x,Y\n", addr);
 
     REG_PC += 3;
-    
+
     cycles = 4;
     if (((addr  & 0xFF) + REG_Y) > 0x100)
       cycles++;
@@ -824,20 +828,20 @@ CpuCycle(){
     arg1 = REG_A;
 
     arg2 = getIndirectX(REG_PC+1, &addr, NULL);
-    
+
     REG_A = eor(arg1, arg2);
 
     OPPRINTF("EOR $%.4x,Y\n", addr);
 
     REG_PC += 2;
     cycles = 6;
-            
+
     break;
   case OPCODE_EOR_IND_Y:
     arg1 = REG_A;
 
     arg2 = getIndirectY(REG_PC+1, &addr, NULL);
-    
+
     REG_A = eor(arg1, arg2);
 
     OPPRINTF("EOR ($.2%x),Y\n", addr);
@@ -905,15 +909,15 @@ CpuCycle(){
     OPPRINTF("INC $%.2x\n", arg1);
 
     inc(arg1, addr);
-    
+
     REG_PC += 2;
     cycles = 5;
 
     break;
-     
+
   case OPCODE_INC_ZERO_X:
     arg1 = getZeroX(REG_PC+1, &addr, &write_addr);
- 
+
     inc(arg1, write_addr);
 
     OPPRINTF("INC $%.2x,X\n", addr);
@@ -925,7 +929,7 @@ CpuCycle(){
 
   case OPCODE_INC_ABS:
     arg1 = getAbsolute(REG_PC+1, &addr);
- 
+
     inc(arg1, addr);
     OPPRINTF("INC $%.4x\n", addr);
 
@@ -936,7 +940,7 @@ CpuCycle(){
 
   case OPCODE_INC_ABS_X:
     arg1 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
- 
+
     inc(arg1, write_addr);
 
     OPPRINTF("INC $%.4x,X\n", addr);
@@ -970,9 +974,9 @@ CpuCycle(){
 
     StackPushShort(REG_PC + 2);
     REG_PC = addr;
-      
+
     cycles = 6;
-	    
+
     break;
   case OPCODE_LDA_IMM:
     arg2 = getImmediate(REG_PC+1);
@@ -1078,7 +1082,7 @@ CpuCycle(){
 
   case OPCODE_LDX_ZERO_Y:
     arg2 = getZeroY(REG_PC+1, &addr, NULL);
-    
+
     OPPRINTF("LDX $%.2x,Y\n", addr);
     ldx(arg2);
     REG_PC += 2;
@@ -1088,7 +1092,7 @@ CpuCycle(){
 
   case OPCODE_LDX_ABS:
     arg2 = getAbsolute(REG_PC+1, &addr);
-	
+
     OPPRINTF("LDX $%.4x\n", addr);
     ldx(arg2);
 
@@ -1096,7 +1100,7 @@ CpuCycle(){
     cycles = 4;
 
     break;
-      
+
   case OPCODE_LDX_ABS_Y:
     arg2 = getAbsoluteY(REG_PC+1, &addr, NULL);
 
@@ -1165,12 +1169,12 @@ CpuCycle(){
   case OPCODE_LSR_A:
     OPPRINTF("LSR A\n");
 
-    lsr(&REG_A); 
+    lsr(&REG_A);
     REG_PC += 1;
     cycles = 2;
 
     break;
-   
+
   case OPCODE_LSR_ZERO:
     arg2 = getZero(REG_PC+1, &addr);
     OPPRINTF("LSR $%.2x\n", addr);
@@ -1182,7 +1186,7 @@ CpuCycle(){
     cycles = 5;
 
     break;
-      
+
   case OPCODE_LSR_ZERO_X:
     // calculate addr
     arg2 = getZeroX(REG_PC+1, &addr, &write_addr);
@@ -1215,7 +1219,7 @@ CpuCycle(){
     cycles = 6;
 
     break;
-      
+
   case OPCODE_LSR_ABS_X:
     arg2 = getAbsoluteX(REG_PC+1, &addr, &write_addr);
 
@@ -1234,7 +1238,7 @@ CpuCycle(){
   case OPCODE_NOP:
     OPPRINTF("NOP\n");
     // No op!
-      
+
     // advance pc
     REG_PC += 1;
     cycles = 2;
@@ -1248,7 +1252,7 @@ CpuCycle(){
 
     REG_PC += 2;
     cycles = 2;
-            
+
     break;
   case OPCODE_ORA_ZERO:
     arg2 = getZero(REG_PC+1, &addr);
@@ -1273,7 +1277,7 @@ CpuCycle(){
 
     break;
   case OPCODE_ORA_ABS:
-    
+
     arg2 = getAbsolute(REG_PC+1, &addr);
     OPPRINTF("ORA $%.4x\n", addr);
 
@@ -1283,7 +1287,7 @@ CpuCycle(){
     cycles = 4;
 
     break;
-      
+
   case OPCODE_ORA_ABS_X:
     arg2 = getAbsoluteX(REG_PC+1, &addr, NULL);
 
@@ -1302,7 +1306,7 @@ CpuCycle(){
     OPPRINTF("ORA $%.4x,Y\n", addr);
 
     ora(arg2);
-    
+
     REG_PC += 3;
     cycles = 4;
     if (((addr  & 0xFF) + REG_Y) > 0x100)
@@ -1343,7 +1347,7 @@ CpuCycle(){
     SETSIGN(REG_X);
     SETZERO(REG_X);
     cycles = 2;
-	    
+
     break;
   case OPCODE_TXA:
     OPPRINTF("TXA\n");
@@ -1418,7 +1422,7 @@ CpuCycle(){
     cycles = 2;
 
     break;
-      
+
   case OPCODE_ROL_ZERO:
     arg2 = getZero(REG_PC+1, &addr);
 
@@ -1599,20 +1603,20 @@ CpuCycle(){
     REG_A = sbc(REG_A, arg2, FLAG_CARRY(REG_ST));
 
     OPPRINTF("SBC $%.2x,X\n", addr);
-    
+
     REG_PC += 2;
     cycles = 4;
-	    
+
     break;
- 
+
   case OPCODE_SBC_ABS:
     // Get subtrahend
     arg2 = getAbsolute(REG_PC+1, &addr);
-    
+
     REG_A = sbc(REG_A, arg2, FLAG_CARRY(REG_ST));
 
     OPPRINTF("SBC $%.4x\n", addr);
-    
+
     REG_PC += 3;
     cycles = 4;
 
@@ -1623,7 +1627,7 @@ CpuCycle(){
     arg2 = getAbsoluteX(REG_PC+1, &addr, NULL);
 
     REG_A = sbc(REG_A, arg2, FLAG_CARRY(REG_ST));
-    
+
     OPPRINTF("SBC $%.4x,X\n", addr);
 
 
@@ -1639,7 +1643,7 @@ CpuCycle(){
     arg2 = getAbsoluteY(REG_PC+1, &addr, NULL);
 
     REG_A = sbc(REG_A, arg2, FLAG_CARRY(REG_ST));
-    
+
     OPPRINTF("SBC $%.4x,Y\n", addr);
 
 
@@ -1655,20 +1659,20 @@ CpuCycle(){
     arg2 = getIndirectX(REG_PC+1, &addr, NULL);
 
     REG_A = sbc(REG_A, arg2, FLAG_CARRY(REG_ST));
-    
+
     OPPRINTF("SBC ($.2%x,X)\n", addr);
-    
+
     REG_PC += 2;
     cycles = 6;
 
     break;
-      
+
   case OPCODE_SBC_IND_Y:
     // Get subtrahend
     arg2 = getIndirectY(REG_PC+1, &addr, NULL);
 
     REG_A = sbc(REG_A, arg2, FLAG_CARRY(REG_ST));
-    
+
     OPPRINTF("SBC ($.2%x),Y\n", addr);
 
     REG_PC += 2;
@@ -1682,9 +1686,9 @@ CpuCycle(){
     getZero(REG_PC+1, &write_addr);
 
     sta(write_addr);
-    
+
     OPPRINTF("STA $%.2x\n", write_addr);
-    
+
     REG_PC += 2;
     cycles = 3;
 
@@ -1693,7 +1697,7 @@ CpuCycle(){
     getZeroX(REG_PC+1, &addr, &write_addr);
 
     sta(write_addr);
-    
+
     OPPRINTF("STA $%.2x,X\n", addr);
 
     REG_PC += 2;
@@ -1774,15 +1778,15 @@ CpuCycle(){
     REG_PC++;
     cycles = 3;
 
-    break;      
-      
+    break;
+
   case OPCODE_PLA:
     OPPRINTF("PLA\n");
     REG_A = StackPopByte();
     REG_PC++;
     cycles = 4;
 
-    break;      
+    break;
 
   case OPCODE_PHP:
     OPPRINTF("PHP\n");
@@ -1790,7 +1794,7 @@ CpuCycle(){
     REG_PC++;
     cycles = 3;
 
-    break;      
+    break;
 
   case OPCODE_PLP:
     OPPRINTF("PLP\n");
@@ -1798,7 +1802,7 @@ CpuCycle(){
     REG_PC++;
     cycles = 4;
 
-    break;      
+    break;
   case OPCODE_STX_ZERO:
     getZero(REG_PC+1, &write_addr);
 
@@ -1841,7 +1845,7 @@ CpuCycle(){
 
     REG_PC += 2;
     cycles = 3;
-           
+
     break;
   case OPCODE_STY_ZERO_X:
     getZeroX(REG_PC+1, &addr, &write_addr);
@@ -1863,8 +1867,23 @@ CpuCycle(){
 
     REG_PC = REG_PC+3;
     cycles = 4;
-	    
+
     break;
+  case 0xC7:
+      arg1 = getZero(REG_PC+1, &addr);
+
+      OPPRINTF("DCP $%.2x\n", addr);
+
+      dec(arg1, addr);
+
+      arg1 = REG_A;
+      arg2 = getZero(REG_PC+1, &addr);
+      OPPRINTF("CMP $%.2x\n", addr);
+      
+      cmp(arg1, arg2);
+      REG_PC += 2;
+      cycles = 6;
+      break;
   case 0x80:
   case 0x0C:
   case 0x1C:
@@ -1878,14 +1897,20 @@ CpuCycle(){
     REG_PC = REG_PC+2;
     cycles = 4;
     break;
-    
+
   default:
     printf("ERROR: UNKNOWN OPCODE:%d\n", opcode);
 
     break;
   }
-  assert(cycles != 0);
+  //assert(cycles != 0);
 
+  if (printcycles>=0) {
+      // printf("cycles: %d\n", cycles);
+  }
+  if (printcycles > 11) {
+      printcycles = -1;
+  }
   processor->cycles = cycles;
 
   return 0;
@@ -1906,7 +1931,7 @@ CpuCreate()
 
   // Start with the reset vector
   REG_PC = MemoryGetTwoBytesAt(RESET_VECTOR_ADDR);
-  
+
   return 0;
 }
 

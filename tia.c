@@ -74,16 +74,13 @@ PlayField *playField;
 
 static
 int
-TiaParsePlayField()
+TiaParsePlayField(bool isLeft)
 {
 
   tia->player0->color = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_COLOR_MASK) >> 4;
   tia->player0->lum = (memmap->tia_write[TIA_WRITE_COLUP0] & TIA_LUM_MASK) >> 1;
   tia->player1->color = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_COLOR_MASK) >> 4;
   tia->player1->lum = (memmap->tia_write[TIA_WRITE_COLUP1] & TIA_LUM_MASK) >> 1;
-  
-  playField->pf_color = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_COLOR_MASK) >> 4;
-  playField->pf_lum = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_LUM_MASK) >> 1;
 
   playField->bk_color = (memmap->tia_write[TIA_WRITE_COLUBK] & TIA_COLOR_MASK) >> 4;
   playField->bk_lum = (memmap->tia_write[TIA_WRITE_COLUBK] & TIA_LUM_MASK) >> 1;
@@ -116,6 +113,19 @@ TiaParsePlayField()
   playField->reflect = CTRLPF & TIA_CTRLPF_REFLECT_MASK;
   playField->score = CTRLPF & TIA_CTRLPF_SCORE_MASK;
   playField->priority = CTRLPF & TIA_CTRLPF_PRIORITY_MASK;
+  if (playField->score) {
+      if (isLeft) {
+          playField->pf_color = tia->player0->color;
+          playField->pf_lum = tia->player0->lum;
+      } else {
+          playField->pf_color = tia->player1->color;
+          playField->pf_lum = tia->player1->lum;
+      }
+      
+  } else {
+      playField->pf_color = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_COLOR_MASK) >> 4;
+      playField->pf_lum = (memmap->tia_write[TIA_WRITE_COLUPF] & TIA_LUM_MASK) >> 1;
+  }
   
   return 0;
 }
@@ -163,48 +173,59 @@ getSpritePixels(int row,
   if(tia->hMotionPending){
     tia->hMotionPending = false;
 
-    p0->clkStart -= p0->hMotion;
-    if(p0->clkStart < 0)
-      p0->clkStart = 0;
+    p0->clkStart = p0->clkStart - p0->hMotion;
+    // printf("p0 clkStart %d, hMotion %d\n", p0->clkStart, p0->hMotion);
+    /* if(p0->clkStart < 0) */
+    /*   p0->clkStart = 0; */
 
     p1->clkStart -= p1->hMotion;
-    if(p1->clkStart < 0)
-      p1->clkStart = 0;
+    /* if(p1->clkStart < 0) */
+    /*   p1->clkStart = 0; */
 
     missile0Pos = tia->missile0->clkStart - tia->missile0->hMotion;
-    if(missile0Pos < 0)
-      missile0Pos = 0;
+    // if(missile0Pos < 0)
+    //  missile0Pos = 0;
 
     missile1Pos = tia->missile1->clkStart - tia->missile1->hMotion;
-    if(missile1Pos < 0)
-      missile1Pos = 0;
+    //if(missile1Pos < 0)
+    //  missile1Pos = 0;
 
     tia->ball->clkStart -= tia->ball->hMotion;
-    if(tia->ball->clkStart < 0)
-      tia->ball->clkStart = 0;
+    //if(tia->ball->clkStart < 0)
+    //  tia->ball->clkStart = 0;
   }
-  
+  else {
+      p0->adjClkStart = p0->clkStart;
+  }
+  //printf("sprite update\n");
   // player 0
   if(p0->reset) {
     p0->reset = false;
   }
   else {
-    bool p0Enable = p0->copies > 1 &&
-      p0->copyCount < p0->copies &&
-      p0->copyCount > 0 &&
-      p0->spaceCount == 0;
-      
-    if((p0->clkStart == column &&
-        !p0->delayed)||
-        p0Enable){
+    /* bool p0Enable = p0->copies > 1 && */
+    /*   p0->copyCount < p0->copies && */
+    /*   p0->copyCount >= 0 && */
+    /*   p0->spaceCount == 0; */
+
+    //printf("enable? %s copyCount %d, copies %d, spaceCount %d\n",
+    //       p0Enable?"true":"false",
+    //       p0->copyCount,
+     //      p0->copies,
+      //     p0->spaceCount);
+    if(p0->adjClkStart == column/*  && */
+        /* !p0->delayed)|| */
+        /* p0Enable */
+           ){
       p0->pixBit = 0;
-      p0->clkStart = column;
+      p0->spaceCount = -1;
+      p0->adjClkStart = column;
     }
 
     if (p0->pixBit < 0 ) {
       if (p0->copyCount > 0 && p0->spaceCount > 0) {
         p0->spaceCount--;
-        printf("spacecount %d\n", p0->spaceCount);
+        //  printf("spacecount %d\n", p0->spaceCount);
       }
 
       
@@ -247,7 +268,7 @@ getSpritePixels(int row,
             p0->copyCount--;
             p0->pixBit = -1;
         } else {
-            printf("pixBit %d\n", p0->pixBit);
+            //printf("pixBit %d\n", p0->pixBit);
             p0->pixBit = p0->pixBit+1;
         }
         
@@ -259,15 +280,18 @@ getSpritePixels(int row,
       p1->reset = false;
       
   } else {
-      bool p1Enable = p1->copies > 1 &&
-          p1->copyCount < p1->copies &&
-          p1->copyCount > 0 &&
-          p1->spaceCount == 0;
+      /* bool p1Enable = p1->copies > 1 && */
+      /*     p1->copyCount < p1->copies && */
+      /*     p1->copyCount > 0 && */
+      /*     p1->spaceCount == 0; */
     
-      if((p1->clkStart == column &&
-          !p1->delayed) ||
-          p1Enable){ // or matches 
+      if(p1->clkStart == column/*  && */
+          /* !p1->delayed) || */
+          /* p1Enable */){ // or matches 
 	  p1->pixBit = 0;
+          p1->spaceCount = -1;
+
+          
 	  p1->clkStart = column;
       }
       
@@ -286,14 +310,14 @@ getSpritePixels(int row,
 	     (1 << (p1->pixBit / p1->width))){
 	      *hasP1 = true;
 	      // could set the alpha?
-	      *p1Pixel = 0; // p1_pixel;
+	      *p1Pixel = p1_pixel;
 	      
 	  } else if(!p1->reflect &&
 		    memmap->tia_write[TIA_WRITE_GRP1] &
 		    (1 << (7 - p1->pixBit / p1->width))){
 	      *hasP1 = true;
 	      // could set the alpha?
-	      *p1Pixel = 0; // p1_pixel;
+	      *p1Pixel = p1_pixel;
 	  }
 	  else {
 	      *hasP1 = false;
@@ -472,8 +496,12 @@ TiaPlayField(int row, int column){
   // Are we in the printable area and which PF register to use?
   if ( row < VERTICAL_TIMING || row >= VERTICAL_TIMING + FRAME_LINES || column < HORIZONTAL_BLANK)
     return 0;
+  bool isLeft = true;
+  if( column - HORIZONTAL_BLANK > (4 + 8 + 8) * 4) {
+      isLeft = false;
+  } 
   
-  TiaParsePlayField();
+  TiaParsePlayField(isLeft);
  
   bk_color = palette[playField->bk_lum][playField->bk_color];
   bk_pixel = StellaCreatePixel(0x00, bk_color.red, bk_color.green, bk_color.blue);
@@ -884,12 +912,15 @@ TiaCycle()
   TiaPlayField(tia->row, tia->column);
  
   tia->column = (tia->column + 1) % CLOCK_COUNTS;
+  // printf("column: %d\n", tia->column);
+  // 30 cycles * 3 + 5 95 - 68 =
   if(tia->column == 0) {
     tia->wsync = false;
     tia->row = (tia->row + 1) % SCAN_LINES;
     updatePlayerCounts();
   }
-    
+
+  tia->colorClocks++;
   return tia->column * tia->row;
 }
 

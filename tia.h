@@ -277,6 +277,7 @@ typedef struct _sprite
     int pixBit;
     int pixBitDelayed;
     int clkStart;
+    int adjClkStart;
     int hMotion;
     int width;
     int copies;
@@ -317,7 +318,7 @@ typedef struct _Tia {
   Sprite *ball;
   Sprite *missile0;
   Sprite *missile1;
-
+    int colorClocks;
   PlayField *playfield;
 }Tia;
 
