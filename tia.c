@@ -203,20 +203,22 @@ getSpritePixels(int row,
     p0->reset = false;
   }
   else {
-    /* bool p0Enable = p0->copies > 1 && */
-    /*   p0->copyCount < p0->copies && */
-    /*   p0->copyCount >= 0 && */
-    /*   p0->spaceCount == 0; */
+      bool p0Enable = p0->copies > 1 &&
+          p0->copyCount < p0->copies &&
+          p0->copyCount >= 0 &&
+          p0->spaceCount == 0 &&
+          column >= p0->adjClkStart;
 
-    //printf("enable? %s copyCount %d, copies %d, spaceCount %d\n",
-    //       p0Enable?"true":"false",
-    //       p0->copyCount,
-     //      p0->copies,
-      //     p0->spaceCount);
-    if(p0->adjClkStart == column/*  && */
-        /* !p0->delayed)|| */
-        /* p0Enable */
-           ){
+    printf("column %d, enable? %s copyCount %d, copies %d, spaceCount %d\n",
+           column,
+           p0Enable?"true":"false",
+           p0->copyCount,
+          p0->copies,
+         p0->spaceCount);
+      if((p0->adjClkStart == column &&
+       !p0->delayed)||
+        p0Enable
+            ){
       p0->pixBit = 0;
       p0->spaceCount = -1;
       p0->adjClkStart = column;
@@ -225,7 +227,7 @@ getSpritePixels(int row,
     if (p0->pixBit < 0 ) {
       if (p0->copyCount > 0 && p0->spaceCount > 0) {
         p0->spaceCount--;
-        //  printf("spacecount %d\n", p0->spaceCount);
+        
       }
 
       
@@ -280,14 +282,21 @@ getSpritePixels(int row,
       p1->reset = false;
       
   } else {
-      /* bool p1Enable = p1->copies > 1 && */
-      /*     p1->copyCount < p1->copies && */
-      /*     p1->copyCount > 0 && */
-      /*     p1->spaceCount == 0; */
+      bool p1Enable = p1->copies > 1 &&
+          p1->copyCount < p1->copies &&
+          p1->copyCount > 0 &&
+          p1->spaceCount == 0 &&
+          column >= p1->adjClkStart;
+    printf("column %d, p1 enable? %s copyCount %d, copies %d, spaceCount %d\n",
+           column,
+           p1Enable?"true":"false",
+           p0->copyCount,
+           p0->copies,
+           p0->spaceCount);
     
-      if(p1->clkStart == column/*  && */
-          /* !p1->delayed) || */
-          /* p1Enable */){ // or matches 
+      if((p1->clkStart == column &&
+          !p1->delayed) || 
+          p1Enable){ // or matches 
 	  p1->pixBit = 0;
           p1->spaceCount = -1;
 
@@ -794,6 +803,7 @@ parsePlayerSize(int reg, Sprite* sp){
       sp->space = 3;
       break;
   case THREE_COPIES_CLOSE:
+      //printf("three copies close\n");
       sp->copies = 3;
       sp->width = 1;
       sp->space = 1;
@@ -809,6 +819,7 @@ parsePlayerSize(int reg, Sprite* sp){
       sp->space = 0;
       break;
   case THREE_COPIES_MID:
+      printf("three copies mid");
       sp->copies = 3;
       sp->width = 1;
       sp->space = 3;

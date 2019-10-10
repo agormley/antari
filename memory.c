@@ -113,12 +113,15 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
     tia->ball->enabled = true;
     break;
   case TIA_WRITE_VDELP0:
-      tia->player0->delayed = byte;
+      printf("delayed 0\n");
+      tia->player0->delayed = 1;
       break;
   case TIA_WRITE_VDELP1:
-      tia->player1->delayed = byte;
+      printf("delayed 1\n");
+      tia->player1->delayed = 1;
       break;
   case TIA_WRITE_GRP0:
+      printf("grp0\n");
       if (tia->player0->delayed) {
           addr1 = TIA_WRITE_GRP0b;
       }
@@ -140,6 +143,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
       }
       break;
   case TIA_WRITE_GRP1:
+      printf("grp1\n");
       if (tia->player1->delayed) {                                                            
           addr1 = TIA_WRITE_GRP1b;                                                                  
       }                                                                                             
