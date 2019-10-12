@@ -121,10 +121,7 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
       tia->player1->delayed = 1;
       break;
   case TIA_WRITE_GRP0:
-      printf("grp0\n");
-      if (tia->player0->delayed) {
-          addr1 = TIA_WRITE_GRP0b;
-      }
+      printf("grp0 %#02x\n", byte);
       if (tia->player1->delayed) {
           // unsigned char n  = byte;
           // int i = 0;
@@ -139,17 +136,26 @@ MemorySetByteAt(unsigned short addr, unsigned char byte)
          // }
          // printf("\n");
           //printf("write to GRP0 (%.2x)\n", byte);
-          memmap->memory[TIA_WRITE_GRP1] = memmap->memory[TIA_WRITE_GRP1b]; 
+          memmap->memory[TIA_WRITE_GRP1] = memmap->memory[TIA_WRITE_GRP1b];
+          memmap->memory[TIA_WRITE_GRP1b] = 0;
       }
+      if (tia->player0->delayed) {
+          memmap->memory[TIA_WRITE_GRP0b] = byte;
+          return;
+      }
+     
       break;
   case TIA_WRITE_GRP1:
-      printf("grp1\n");
-      if (tia->player1->delayed) {                                                            
-          addr1 = TIA_WRITE_GRP1b;                                                                  
-      }                                                                                             
+      printf("grp1 %#02x\n", byte);
       if (tia->player0->delayed) {                                                                  
           memmap->memory[TIA_WRITE_GRP0] = memmap->memory[TIA_WRITE_GRP0b];
-      }              
+          memmap->memory[TIA_WRITE_GRP0b] = 0;
+      }
+      if (tia->player1->delayed) {                                                            
+          memmap->memory[TIA_WRITE_GRP1b] = byte ;
+          return;
+      }                                                                                             
+
       break;
   case TIA_WRITE_HMOVE:
     tia->hMotionPending = true;

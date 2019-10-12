@@ -207,33 +207,41 @@ getSpritePixels(int row,
           p0->copyCount < p0->copies &&
           p0->copyCount >= 0 &&
           p0->spaceCount == 0 &&
-          column >= p0->adjClkStart;
+          column >= p0->clkStart;
 
-    printf("column %d, enable? %s copyCount %d, copies %d, spaceCount %d\n",
-           column,
-           p0Enable?"true":"false",
-           p0->copyCount,
-          p0->copies,
-         p0->spaceCount);
-      if((p0->adjClkStart == column &&
-       !p0->delayed)||
+      if((p0->clkStart == column/*  && */
+       /* !p0->delayed */)||
         p0Enable
             ){
       p0->pixBit = 0;
       p0->spaceCount = -1;
-      p0->adjClkStart = column;
-    }
-
-    if (p0->pixBit < 0 ) {
-      if (p0->copyCount > 0 && p0->spaceCount > 0) {
-        p0->spaceCount--;
-        
+      //p0->adjClkStart = column;
       }
-
       
-      *hasP0 = false;
-      // could set the alpha?
-      *p0Pixel = 0;
+      printf("p0 column %d, enable? %s copyCount %d, copies %d, spaceCount %d,\t\nclkStart %d, adjClkStart %d, pixBit %d, grp0 %#02x grp0b %#02x\n",
+             column,
+             p0Enable?"true":"false",
+             p0->copyCount,
+             p0->copies,
+             p0->spaceCount,
+             p0->clkStart,
+             p0->adjClkStart,
+             p0->pixBit,
+             memmap->tia_write[TIA_WRITE_GRP0],
+             memmap->memory[TIA_WRITE_GRP0b]);
+      
+      
+      
+      if (p0->pixBit < 0 ) {
+          if (p0->copyCount > 0 && p0->spaceCount > 0) {
+              p0->spaceCount--;
+              
+          }
+          
+          
+          *hasP0 = false;
+          // could set the alpha?
+          *p0Pixel = 0;
     } else {
       // get p0 pixel!
 	if(p0->reflect){
@@ -286,29 +294,32 @@ getSpritePixels(int row,
           p1->copyCount < p1->copies &&
           p1->copyCount > 0 &&
           p1->spaceCount == 0 &&
-          column >= p1->adjClkStart;
-    printf("column %d, p1 enable? %s copyCount %d, copies %d, spaceCount %d\n",
-           column,
-           p1Enable?"true":"false",
-           p0->copyCount,
-           p0->copies,
-           p0->spaceCount);
+          column >= p1->clkStart;
     
-      if((p1->clkStart == column &&
-          !p1->delayed) || 
+      if((p1->clkStart == column/* && */
+          /* !p1->delayed */) || 
           p1Enable){ // or matches 
 	  p1->pixBit = 0;
           p1->spaceCount = -1;
 
           
-	  p1->clkStart = column;
+	  //p1->clkStart = column;
       }
+      printf("p1 column %d, enable? %s copyCount %d, copies %d, spaceCount %d,\t\n clkstart %d, adjClkStart %d pixBit %d grp1 %#2x\n",
+           column,
+             p1Enable?"true":"false",
+             p1->copyCount,
+             p1->copies,
+             p1->spaceCount,
+             p1->clkStart,
+             p1->adjClkStart,
+             p1->pixBit,
+             memmap->tia_write[TIA_WRITE_GRP1]);
       
       if (p1->pixBit < 0 ) {
           if (p1->copyCount > 0 && p1->spaceCount > 0) {
               p1->spaceCount--;
           }
-
  
           *hasP1 = false;
 	  // could set the alpha?
